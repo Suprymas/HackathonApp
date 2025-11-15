@@ -164,11 +164,7 @@ export default function CreateStoryScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Header - Grey text at top */}
-      <View style={styles.headerTop}>
-        <ThemedText style={styles.headerTopText}>Create Story</ThemedText>
-      </View>
-      
+    
       {/* Header - Coral bar */}
       <View style={styles.header}>
         <ThemedText style={styles.headerTitle}>Create new Story</ThemedText>
