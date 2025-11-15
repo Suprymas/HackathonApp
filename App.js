@@ -9,6 +9,8 @@ import CreateStoryScreen from "./screens/CreateStoryScreen";
 import {supabase} from "./services/Supabase";
 import {ActivityIndicator, View, StyleSheet} from "react-native";
 import RecipeDetailScreen from "./screens/RecipeDetailScreen";
+import SettingsScreen from './screens/SettingsScreen';
+import ProfileScreen from './screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -69,6 +71,8 @@ export default function App() {
         <Stack.Screen name="tabNavigator" component={TabNavigator} />
         <Stack.Screen name="CreateStory" component={CreateStoryScreen} />
         <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>
