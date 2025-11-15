@@ -11,6 +11,7 @@ import {ActivityIndicator, View, StyleSheet} from "react-native";
 import RecipeDetailScreen from "./screens/RecipeDetailScreen";
 import SettingsScreen from './screens/SettingsScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import GroupChatScreen from './screens/GroupChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -73,6 +74,7 @@ export default function App() {
         <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="GroupChat" component={GroupChatScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>

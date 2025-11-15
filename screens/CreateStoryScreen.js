@@ -126,11 +126,7 @@ export default function CreateStoryScreen({ navigation }) {
       <View style={styles.headerTop}>
         <ThemedText style={styles.headerTopText}>Create Story</ThemedText>
       </View>
-<<<<<<< HEAD
-      
-=======
 
->>>>>>> 8b139a4cfea303675f3465bb23c4447f4626c4b2
       {/* Header - Coral bar */}
       <View style={styles.header}>
         <ThemedText style={styles.headerTitle}>Create new Story</ThemedText>

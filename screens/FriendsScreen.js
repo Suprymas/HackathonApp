@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Text } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Text, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../services/Supabase';
 
 export default function FriendsScreen() {
-  const [activeTab, setActiveTab] = useState('chats'); // 'chats' or 'notification'
+  const navigation = useNavigation();
+  const [activeTab, setActiveTab] = useState('groups'); // 'groups', 'friends', or 'feed'
   const [groups, setGroups] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [feedPosts, setFeedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [userAvatar, setUserAvatar] = useState('https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg'); // Default husky avatar
 
   useEffect(() => {
     loadData();
@@ -26,13 +31,23 @@ export default function FriendsScreen() {
       }
       setCurrentUserId(user.id);
 
-      // Mock data for groups/chats - replace with actual data fetching
+      // Get user profile for avatar
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile?.avatar_url) {
+        setUserAvatar(profile.avatar_url);
+      }
+
+      // Mock data for groups - replace with actual data fetching
       const mockGroups = [
         {
           id: 1,
           name: 'Room 3A',
           icon: 'restaurant',
-          isHighlighted: false,
           posts: [
             { id: 1, title: 'Pizza', date: '14.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop' },
             { id: 2, title: 'Toast', date: '13.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=200&h=200&fit=crop' },
@@ -43,7 +58,6 @@ export default function FriendsScreen() {
           id: 2,
           name: 'Foodly',
           icon: 'restaurant-outline',
-          isHighlighted: false,
           posts: [
             { id: 4, title: 'Burger', date: '12.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop' },
             { id: 5, title: 'Spieße', date: '11.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=200&h=200&fit=crop' },
@@ -52,26 +66,59 @@ export default function FriendsScreen() {
         }
       ];
 
-      // Mock data for notifications - replace with actual data fetching
-      const mockNotifications = [
+      // Mock data for friends/chats - replace with actual data fetching
+      const mockFriends = [
         {
           id: 1,
-          type: 'like',
-          user: { name: 'Mengmeng', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
-          message: 'Mengmeng liked your story',
-          thumbnail: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=100&h=100&fit=crop'
+          name: 'lukas',
+          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
+          lastMessage: 'You: Hello!',
+          unreadCount: 12,
+          timestamp: '2:30 PM'
         },
         {
           id: 2,
-          type: 'comment',
-          user: { name: 'Mengmeng', avatar: 'https://i.pinimg.com/1200x/55/52/09/55520979a3c00a33bf50fe9c3db3e796.jpg' },
-          message: 'Mengmeng add a comment to your recipe',
-          thumbnail: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop'
+          name: 'Justas',
+          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
+          lastMessage: 'You: Hello!',
+          unreadCount: 0,
+          timestamp: '1:15 PM'
+        },
+        {
+          id: 3,
+          name: 'Siebe',
+          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
+          lastMessage: 'You: Hello!',
+          unreadCount: 0,
+          timestamp: '12:00 PM'
+        }
+      ];
+
+      // Mock data for feed - replace with actual data fetching
+      const mockFeedPosts = [
+        {
+          id: 1,
+          author: { name: 'Siebe', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
+          image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=400&fit=crop',
+          title: 'Delicious Pizza',
+          likes: 24,
+          comments: 5,
+          timestamp: '2 hours ago'
+        },
+        {
+          id: 2,
+          author: { name: 'Guda', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
+          image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&h=400&fit=crop',
+          title: 'Avocado Toast',
+          likes: 18,
+          comments: 3,
+          timestamp: '5 hours ago'
         }
       ];
 
       setGroups(mockGroups);
-      setNotifications(mockNotifications);
+      setFriends(mockFriends);
+      setFeedPosts(mockFeedPosts);
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -80,16 +127,28 @@ export default function FriendsScreen() {
     }
   };
 
-  const renderChatsTab = () => {
+  const renderGroupsTab = () => {
+    const filteredGroups = groups.filter(group => 
+      group.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
       <ScrollView style={styles.contentScroll}>
-        {groups.map((group) => (
-          <View key={group.id} style={[styles.groupCard, group.isHighlighted && styles.highlightedGroupCard]}>
+        {filteredGroups.map((group) => (
+          <TouchableOpacity
+            key={group.id}
+            style={styles.groupCard}
+            onPress={() => navigation.navigate('GroupChat', {
+              groupId: group.id,
+              groupName: group.name,
+              groupIcon: group.icon,
+            })}
+          >
             <View style={styles.groupHeader}>
               <Ionicons 
                 name={group.icon} 
                 size={20} 
-                color={group.isHighlighted ? '#4A90E2' : '#333'} 
+                color="#333" 
                 style={styles.groupIcon}
               />
               <Text style={styles.groupName}>{group.name}</Text>
@@ -109,27 +168,77 @@ export default function FriendsScreen() {
                 </View>
               ))}
             </ScrollView>
-          </View>
+          </TouchableOpacity>
         ))}
-        {/* Single user card */}
-        <View style={styles.userCard}>
-          <Ionicons name="person" size={20} color="#333" style={styles.userIcon} />
-          <Text style={styles.userName}>Mengmeng</Text>
-        </View>
       </ScrollView>
     );
   };
 
-  const renderNotificationTab = () => {
+  const renderFriendsTab = () => {
+    const filteredFriends = friends.filter(friend => 
+      friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
       <ScrollView style={styles.contentScroll}>
-        {notifications.map((notification) => (
-          <View key={notification.id} style={styles.notificationCard}>
-            <Image source={{ uri: notification.user.avatar }} style={styles.notificationAvatar} />
-            <View style={styles.notificationContent}>
-              <Text style={styles.notificationText}>{notification.message}</Text>
+        {filteredFriends.map((friend) => (
+          <TouchableOpacity
+            key={friend.id}
+            style={styles.friendCard}
+            onPress={() => navigation.navigate('GroupChat', {
+              friendId: friend.id,
+              friendName: friend.name,
+              friendAvatar: friend.avatar,
+              isDirectChat: true,
+            })}
+          >
+            <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
+            <View style={styles.friendInfo}>
+              <Text style={styles.friendName}>{friend.name}</Text>
+              <Text style={styles.friendLastMessage}>{friend.lastMessage}</Text>
             </View>
-            <Image source={{ uri: notification.thumbnail }} style={styles.notificationThumbnail} />
+            {friend.unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadBadgeText}>{friend.unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
+  };
+
+  const renderFeedTab = () => {
+    const filteredPosts = feedPosts.filter(post => 
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.author.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    return (
+      <ScrollView style={styles.contentScroll}>
+        {filteredPosts.map((post) => (
+          <View key={post.id} style={styles.feedPostCard}>
+            <View style={styles.feedPostHeader}>
+              <Image source={{ uri: post.author.avatar }} style={styles.feedPostAvatar} />
+              <View style={styles.feedPostAuthorInfo}>
+                <Text style={styles.feedPostAuthorName}>{post.author.name}</Text>
+                <Text style={styles.feedPostTimestamp}>{post.timestamp}</Text>
+              </View>
+            </View>
+            <Image source={{ uri: post.image }} style={styles.feedPostImage} />
+            <View style={styles.feedPostFooter}>
+              <Text style={styles.feedPostTitle}>{post.title}</Text>
+              <View style={styles.feedPostStats}>
+                <View style={styles.feedPostStat}>
+                  <Ionicons name="heart" size={16} color="#666" />
+                  <Text style={styles.feedPostStatText}>{post.likes}</Text>
+                </View>
+                <View style={styles.feedPostStat}>
+                  <Ionicons name="chatbubble" size={16} color="#666" />
+                  <Text style={styles.feedPostStatText}>{post.comments}</Text>
+                </View>
+              </View>
+            </View>
           </View>
         ))}
       </ScrollView>
@@ -138,42 +247,53 @@ export default function FriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header with Groups text */}
-      <View style={styles.topHeader}>
-        <Text style={styles.groupsText}>Groups</Text>
-      </View>
-
-      {/* Orange bar with Messages */}
+      {/* Orange header with Messages and user avatar */}
       <View style={styles.orangeBar}>
         <Text style={styles.messagesText}>Messages</Text>
-        <View style={styles.statusIndicator} />
+        <Image source={{ uri: userAvatar }} style={styles.userAvatar} />
       </View>
 
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={styles.tab}
-          onPress={() => setActiveTab('chats')}
+          onPress={() => setActiveTab('groups')}
         >
-          <Text style={[styles.tabText, activeTab === 'chats' && styles.activeTabText]}>
-            Chats
+          <Text style={[styles.tabText, activeTab === 'groups' && styles.activeTabText]}>
+            Groups
           </Text>
-          {activeTab === 'chats' && <View style={styles.tabUnderline} />}
+          {activeTab === 'groups' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.tab}
-          onPress={() => setActiveTab('notification')}
+          onPress={() => setActiveTab('friends')}
         >
-          <View style={styles.tabWithBadge}>
-            <Text style={[styles.tabText, activeTab === 'notification' && styles.activeTabText]}>
-              Notification
-            </Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>M</Text>
-            </View>
-          </View>
-          {activeTab === 'notification' && <View style={styles.tabUnderline} />}
+          <Text style={[styles.tabText, activeTab === 'friends' && styles.activeTabText]}>
+            Friends
+          </Text>
+          {activeTab === 'friends' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => setActiveTab('feed')}
+        >
+          <Text style={[styles.tabText, activeTab === 'feed' && styles.activeTabText]}>
+            Feed
+          </Text>
+          {activeTab === 'feed' && <View style={styles.tabUnderline} />}
+        </TouchableOpacity>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search"
+          placeholderTextColor="#999"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
       </View>
 
       {/* Content Area */}
@@ -182,7 +302,11 @@ export default function FriendsScreen() {
           <Text>Loading...</Text>
         </View>
       ) : (
-        activeTab === 'chats' ? renderChatsTab() : renderNotificationTab()
+        <>
+          {activeTab === 'groups' && renderGroupsTab()}
+          {activeTab === 'friends' && renderFriendsTab()}
+          {activeTab === 'feed' && renderFeedTab()}
+        </>
       )}
     </View>
   );
@@ -191,21 +315,11 @@ export default function FriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#2C2C2E', // Dark gray background
     paddingTop: 60,
   },
-  topHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  groupsText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
   orangeBar: {
-    backgroundColor: '#D2691E', // Dark orange color
+    backgroundColor: '#CC684F', // Orange color
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -217,17 +331,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  statusIndicator: {
+  userAvatar: {
     width: 40,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#000',
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   tabContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: '#3A3A3C',
     paddingHorizontal: 16,
+    backgroundColor: '#2C2C2E',
   },
   tab: {
     paddingVertical: 12,
@@ -241,7 +357,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeTabText: {
-    color: '#D2691E',
+    color: '#CC684F',
     fontWeight: '600',
   },
   tabUnderline: {
@@ -250,34 +366,29 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     height: 2,
-    backgroundColor: '#D2691E',
+    backgroundColor: '#CC684F',
   },
-  tabWithBadge: {
+  searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginVertical: 12,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  badge: {
-    position: 'absolute',
-    top: -8,
-    right: -16,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#FF0000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
+  searchIcon: {
+    marginRight: 8,
   },
-  badgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
   },
   contentScroll: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#2C2C2E',
   },
   groupCard: {
     backgroundColor: '#fff',
@@ -287,11 +398,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: '#e5e5e5',
-  },
-  highlightedGroupCard: {
-    borderWidth: 2,
-    borderColor: '#4A90E2',
-    borderStyle: 'dashed',
   },
   groupHeader: {
     flexDirection: 'row',
@@ -348,59 +454,115 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 4,
   },
-  userCard: {
+  friendCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    margin: 16,
-    marginTop: 0,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e5e5',
-  },
-  userIcon: {
-    marginRight: 12,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
-  notificationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    margin: 16,
+    marginHorizontal: 16,
     marginBottom: 12,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e5e5e5',
   },
-  notificationAvatar: {
+  friendAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+  friendInfo: {
+    flex: 1,
+  },
+  friendName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  friendLastMessage: {
+    fontSize: 14,
+    color: '#666',
+  },
+  unreadBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FF0000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  unreadBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  feedPostCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+  },
+  feedPostHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+  },
+  feedPostAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginRight: 12,
   },
-  notificationContent: {
+  feedPostAuthorInfo: {
     flex: 1,
   },
-  notificationText: {
-    fontSize: 14,
+  feedPostAuthorName: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#333',
-    lineHeight: 20,
   },
-  notificationThumbnail: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    marginLeft: 12,
+  feedPostTimestamp: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  feedPostImage: {
+    width: '100%',
+    height: 300,
+    resizeMode: 'cover',
+  },
+  feedPostFooter: {
+    padding: 12,
+  },
+  feedPostTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  feedPostStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  feedPostStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  feedPostStatText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 4,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#2C2C2E',
   },
 });
