@@ -13,8 +13,11 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../components/ThemedText';
 import { supabase, uploadImage } from '../services/Supabase';
+import { useNavigation } from '@react-navigation/native';
 
 export default function PublishRecipeScreen() {
+  const navigation = useNavigation();
+
   const [title, setTitle] = useState('');
   const [story, setStory] = useState('');
   const [tags, setTags] = useState('');
@@ -198,11 +201,17 @@ export default function PublishRecipeScreen() {
 
         if (stepsError) throw stepsError;
       }
-
       // Success!
       Alert.alert('Success', 'Recipe created successfully!', [
         {
-          text: 'OK',
+          text: "OK",
+          onPress: () => {
+            // Navigate to the new recipe on successfully creating the recipe
+            navigation.navigate('RecipeDetail', { id: recipe.id });
+          }
+        },
+        {
+          text: 'Add annother',
           onPress: () => {
             // Clear form
             setTitle('');

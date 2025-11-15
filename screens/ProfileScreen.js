@@ -3,6 +3,7 @@ import { Dimensions, Image, ScrollView, StyleSheet, TouchableOpacity, View, Aler
 import { ThemedText } from '../components/ThemedText';
 import { supabase } from '../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native'
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding
@@ -16,6 +17,7 @@ export default function ProfileScreen() {
   const [recipesLoading, setRecipesLoading] = useState(true);
   const [storiesLoading, setStoriesLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     loadUserData();
@@ -150,7 +152,7 @@ export default function ProfileScreen() {
           <ThemedText style={styles.headerTitle} lightColor="#fff" darkColor="#fff">
             Your profile
           </ThemedText>
-          <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
+          <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Settings')}>
             <Ionicons name="menu-outline" size={24} color="#fff" />
           </TouchableOpacity>
         </View>

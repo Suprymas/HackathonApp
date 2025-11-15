@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Dimensions } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '../components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../services/Supabase';
@@ -15,6 +14,7 @@ const getCardWidth = () => {
   const gap = 16; // gap between cards
   return (screenWidth - padding - gap) / 2;
 };
+
 const mockRecipes = [
   {
     id: 1,
@@ -93,94 +93,74 @@ const mockRecipes = [
     },
   },
 ];
-export default function FeedScreen({ navigation }) {
+
+export default function FeedScreen() {
   const [recipes, setRecipes] = useState(mockRecipes);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [stories, setStories] = useState([]);
-  const [storiesLoading, setStoriesLoading] = useState(false);
 
-  useEffect(() => {
-    loadStories();
-    // Uncomment to load from API
-    const loadRecipes = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: recipesData, error: recipesError } = await supabase
-        .from('recipes')
-        .select('*')
-        .eq('user_id', user.id);
-      //console.error(recipesError);
-      console.log("recipedata", recipesData);
-      for (let recipe of recipesData) {
-        console.log("recipe", recipe)
-        const { data: username, error: UserError } = await supabase.from('profiles').select('username').eq('id', recipe.user_id);
-        //console.error(UserError);
-        console.log(username[0].username);
-        recipe.username = username[0].username
-      }
-      setRecipes(recipesData);
-      console.log("changed recipes", recipes)
-      setLoading(false);
-    }
-    loadRecipes();
-
-  }, []);
   const navigator = useNavigation();
-  console.log(typeof (recipes))
-  console.log("recipes", recipes)
 
-  // Reload stories when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      loadStories();
-    }, [])
-  );
-
-  const loadStories = async () => {
-    try {
-      setStoriesLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setStories([]);
-        return;
-      }
-
-      // Load stories from all users (public stories)
-      const { data, error } = await supabase
-        .from('stories')
-        .select(`
-          *,
-          author:user_id(id, username)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-
-      setStories(data || []);
-    } catch (error) {
-      console.error('Error loading stories:', error);
-      setStories([]);
-    } finally {
-      setStoriesLoading(false);
-    }
-  };
-
+  // 从 Supabase 加载 recipes（带错误处理），同时 Retry 按钮也会用这个函数
   const loadRecipes = async () => {
     try {
       setLoading(true);
       setError(null);
-      // TODO: Implement recipe loading from API
-      // For now, using mockRecipes
-      setRecipes(mockRecipes);
-    } catch (error) {
-      console.error('Error loading recipes:', error);
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) {
+        setRecipes([]);
+        return;
+      }
+
+      const { data: recipesData, error: recipesError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (recipesError) throw recipesError;
+
+      const recipesWithUsernames = await Promise.all(
+        (recipesData || []).map(async (recipe) => {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', recipe.user_id)
+            .limit(1);
+
+          if (profileError) {
+            console.error(profileError);
+            return { ...recipe, username: 'Unknown' };
+          }
+
+          const username = profileData?.[0]?.username ?? 'Unknown';
+          return { ...recipe, username };
+        })
+      );
+
+      setRecipes(recipesWithUsernames);
+    } catch (err) {
+      console.error('Error loading recipes:', err);
       setError('Failed to load recipes');
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadRecipes();
+  }, []);
+
+  console.log(typeof recipes);
+  console.log('recipes', recipes);
+
+  // 先用 mock 的 stories，将来再接后端
+  const stories = Array.from({ length: 6 }, (_, i) => ({ id: i }));
 
   return (
     <View style={styles.outerContainer}>
@@ -200,34 +180,12 @@ export default function FeedScreen({ navigation }) {
             style={styles.storiesScroll}
             contentContainerStyle={styles.storiesContent}
           >
-            {/* Add Story Button */}
-            <TouchableOpacity
-              style={styles.storyCircle}
-              onPress={() => navigation.navigate('CreateStory')}
-              activeOpacity={0.7}
-            >
-              <ThemedText style={styles.addStoryIcon}>+</ThemedText>
-            </TouchableOpacity>
-            
-            {/* Existing Stories */}
-            {stories.map((story) => (
-              <TouchableOpacity
-                key={story.id}
-                style={styles.storyCircle}
-                activeOpacity={0.7}
-              >
-                {story.image ? (
-                  <Image
-                    source={{ uri: story.image }}
-                    style={styles.storyImage}
-                    resizeMode="cover"
-                  />
+            {stories.map((story, index) => (
+              <TouchableOpacity key={story.id} style={styles.storyCircle}>
+                {index === 0 ? (
+                  <ThemedText style={styles.addStoryIcon}>+</ThemedText>
                 ) : (
-                  <View style={styles.storyPlaceholder}>
-                    <ThemedText style={styles.storyInitial}>
-                      {story.author?.username?.charAt(0).toUpperCase() || 'U'}
-                    </ThemedText>
-                  </View>
+                  <View style={styles.storyPlaceholder} />
                 )}
               </TouchableOpacity>
             ))}
@@ -270,26 +228,35 @@ export default function FeedScreen({ navigation }) {
                   )}
                   <View style={styles.recipeCardContent}>
                     <View style={styles.recipeHeader}>
-                      <ThemedText style={styles.recipeTitle} numberOfLines={1} lightColor="#000" darkColor="#000">
+                      <ThemedText
+                        style={styles.recipeTitle}
+                        numberOfLines={1}
+                        lightColor="#000"
+                        darkColor="#000"
+                      >
                         {recipe.title}
                       </ThemedText>
                       <ThemedText style={styles.recipeDate} lightColor="#666" darkColor="#666">
-                        {new Date(recipe.created_at).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        }).replace(/\./g, '/')}
+                        {recipe.created_at
+                          ? new Date(recipe.created_at)
+                              .toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                              })
+                              .replace(/\./g, '/')
+                          : ''}
                       </ThemedText>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.recipeAuthorRow}>
                       <View style={styles.authorAvatar}>
                         <ThemedText style={styles.avatarText}>
-                          {recipe.username.charAt(0).toUpperCase()}
+                          {(recipe.username || 'U').charAt(0).toUpperCase()}
                         </ThemedText>
                       </View>
                       <ThemedText style={styles.authorName} lightColor="#000" darkColor="#000">
-                        {recipe.username}
+                        {recipe.username || 'Unknown'}
                       </ThemedText>
                     </View>
                   </View>
@@ -298,8 +265,8 @@ export default function FeedScreen({ navigation }) {
             </View>
           )}
         </View>
-      </ScrollView >
-    </View >
+      </ScrollView>
+    </View>
   );
 }
 
@@ -484,15 +451,5 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontWeight: '600',
-  },
-  storyImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-  },
-  storyInitial: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#666',
   },
 });
