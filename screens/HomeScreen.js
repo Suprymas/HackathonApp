@@ -95,7 +95,7 @@ const mockRecipes = [
 ];
 export default function FeedScreen({ navigation }) {
   const [recipes, setRecipes] = useState(mockRecipes);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stories, setStories] = useState([]);
   const [storiesLoading, setStoriesLoading] = useState(false);
@@ -103,9 +103,23 @@ export default function FeedScreen({ navigation }) {
   useEffect(() => {
     loadStories();
     // Uncomment to load from API
-    // loadRecipes();
+    const loadRecipes = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: recipesData, error: recipesError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('user_id', user.id);
+      //console.error(recipesError);
+      console.log("recipedata", recipesData);
+      setRecipes(recipesData);
+      setLoading(false);
+    }
+    loadRecipes();
+
   }, []);
   const navigator = useNavigation();
+  console.log(typeof (recipes))
+  console.log("recipes", recipes)
 
   // Reload stories when screen comes into focus
   useFocusEffect(

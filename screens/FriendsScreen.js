@@ -15,9 +15,6 @@ export default function FriendsScreen() {
     loadData();
   }, []);
 
-
-
-
   const loadData = async () => {
     try {
       setLoading(true);
@@ -40,7 +37,6 @@ export default function FriendsScreen() {
         console.error('Error fetching users:', usersError);
         return;
       }
-
 
       // Fetch friendships (where current user is requester or addressee)
       const { data: friendshipsData, error: friendshipsError } = await supabase

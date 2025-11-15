@@ -6,8 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  Text,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { supabase } from '../services/Supabase';
 
 export default function RecipeDetailScreen(props) {
   const navigation = useNavigation();
@@ -20,18 +22,34 @@ export default function RecipeDetailScreen(props) {
   const [story, setStory] = useState('');
   const [cookDetails, setCookDetails] = useState('');
 
+  console.log(id);
+  useEffect(() => {
+    const getRecipe = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: recipeData, error: recipeError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', parseInt(user.id));
+      console.error(recipeError);
+      console.log("recipedata", recipeData);
+    }
+    getRecipe();
 
+  }, [id])
 
   // Parse ingredients into array - support both newline and comma separators
+  /*
   const ingredientsList = recipe.ingredients
     ? recipe.ingredients
       .split(/\n|,/)
       .map(item => item.trim())
       .filter(item => item.length > 0)
     : [];
+  */
 
   // Parse instructions into steps
-  const stepsList = recipe.instructions?.split('\n').filter(step => step.trim()) || [];
+  //const stepsList = recipe.instructions?.split('\n').filter(step => step.trim()) || [];
 
   const formatDate = (dateString) => {
     try {
@@ -77,7 +95,12 @@ export default function RecipeDetailScreen(props) {
     const nextId = currentId + 1;
     navigation.push('RecipeDetail', { id: nextId });
   };
+  if (loading) {
+    return (
+      <Text>Loading</Text>
 
+    )
+  }
   return (
     <View style={styles.outerContainer}>
       <ScrollView
