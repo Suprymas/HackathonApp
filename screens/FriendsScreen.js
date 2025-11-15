@@ -37,7 +37,7 @@ export default function FriendsScreen() {
         .select('avatar_url')
         .eq('id', user.id)
         .single();
-      
+
       if (profile?.avatar_url) {
         setUserAvatar(profile.avatar_url);
       }
@@ -45,7 +45,7 @@ export default function FriendsScreen() {
       // Mock data for groups - replace with actual data fetching
       const mockGroups = [
         {
-          id: 1,
+          id: "f5302e31-fcce-4931-9280-618a319a839f",
           name: 'Room 3A',
           icon: 'restaurant',
           posts: [
@@ -128,7 +128,7 @@ export default function FriendsScreen() {
   };
 
   const renderGroupsTab = () => {
-    const filteredGroups = groups.filter(group => 
+    const filteredGroups = groups.filter(group =>
       group.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -139,16 +139,14 @@ export default function FriendsScreen() {
             key={group.id}
             style={styles.groupCard}
             onPress={() => navigation.navigate('GroupChat', {
-              groupId: group.id,
-              groupName: group.name,
-              groupIcon: group.icon,
+              roomId: group.id,
             })}
           >
             <View style={styles.groupHeader}>
-              <Ionicons 
-                name={group.icon} 
-                size={20} 
-                color="#333" 
+              <Ionicons
+                name={group.icon}
+                size={20}
+                color="#333"
                 style={styles.groupIcon}
               />
               <Text style={styles.groupName}>{group.name}</Text>
@@ -175,7 +173,7 @@ export default function FriendsScreen() {
   };
 
   const renderFriendsTab = () => {
-    const filteredFriends = friends.filter(friend => 
+    const filteredFriends = friends.filter(friend =>
       friend.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -209,7 +207,7 @@ export default function FriendsScreen() {
   };
 
   const renderFeedTab = () => {
-    const filteredPosts = feedPosts.filter(post => 
+    const filteredPosts = feedPosts.filter(post =>
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.author.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
