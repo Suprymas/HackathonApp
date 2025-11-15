@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 // Import your screen components
 import HomeScreen from './HomeScreen';
 import PublishRecipeScreen from './PublishRecipeScreen';
-// import FriendsScreen from './screens/FriendsScreen';
+import FriendsScreen from './FriendsScreen';
 // import ProfileScreen from './screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -63,16 +63,16 @@ export default function TabNavigator() {
           ),
         }}
       />
-      {/*<Tab.Screen*/}
-      {/*  name="Friends"*/}
-      {/*  component={FriendsScreen}*/}
-      {/*  options={{*/}
-      {/*    title: 'Friends',*/}
-      {/*    tabBarIcon: ({ color, size }) => (*/}
-      {/*      <Ionicons name="people" size={size} color={color} />*/}
-      {/*    ),*/}
-      {/*  }}*/}
-      {/*/>*/}
+      <Tab.Screen
+        name="Friends"
+        component={FriendsScreen}
+        options={{
+          title: 'Friends',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people" size={size} color={color} />
+          ),
+        }}
+      />
       {/*<Tab.Screen*/}
       {/*  name="Profile"*/}
       {/*  component={ProfileScreen}*/}
