@@ -2,23 +2,25 @@ import React, { useState } from 'react';
 import {
   Alert,
   Image,
-  ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
   KeyboardAvoidingView,
   Platform,
+  ImageBackground,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../components/ThemedText';
 import { supabase } from '../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
 
+const REDDISH_BROWN = '#8B4513'; // Reddish-brown color from design
+
 export default function CreateStoryScreen({ navigation }) {
-  const [storyTitle, setStoryTitle] = useState('');
   const [storyContent, setStoryContent] = useState('');
   const [storyImageUri, setStoryImageUri] = useState(null);
+  const [showTextInput, setShowTextInput] = useState(false);
   const [creatingStory, setCreatingStory] = useState(false);
 
   const requestPermissions = async () => {
@@ -45,15 +47,13 @@ export default function CreateStoryScreen({ navigation }) {
       if (source === 'camera') {
         result = await ImagePicker.launchCameraAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
+          allowsEditing: false,
           quality: 0.8,
         });
       } else {
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
+          allowsEditing: false,
           quality: 0.8,
         });
       }
@@ -113,8 +113,8 @@ export default function CreateStoryScreen({ navigation }) {
   };
 
   const handleCreateStory = async () => {
-    if (!storyContent.trim() && !storyImageUri) {
-      Alert.alert('提示', '请至少添加图片或文字内容');
+    if (!storyImageUri) {
+      Alert.alert('提示', '请先选择一张图片');
       return;
     }
 
@@ -126,18 +126,15 @@ export default function CreateStoryScreen({ navigation }) {
         return;
       }
 
-      let imageUrl = null;
-      if (storyImageUri) {
-        // Upload image to Supabase Storage
-        imageUrl = await uploadImageToSupabase(storyImageUri);
-      }
+      // Upload image to Supabase Storage
+      const imageUrl = await uploadImageToSupabase(storyImageUri);
 
       // Save story to database
       const { data, error } = await supabase
         .from('food_statuses')
         .insert({
           author_id: user.id,
-          title: storyTitle.trim() || null,
+          title: null,
           content: storyContent.trim() || null,
           image_url: imageUrl,
         })
@@ -169,118 +166,127 @@ export default function CreateStoryScreen({ navigation }) {
     >
       {/* Header */}
       <View style={styles.header}>
+        <ThemedText style={styles.headerTitle}>Create new Story</ThemedText>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backButton}
+          style={styles.closeButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="close" size={24} color="#fff" />
         </TouchableOpacity>
-        <ThemedText style={styles.headerTitle}>Create Your New Story</ThemedText>
-        <View style={styles.placeholder} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Image Upload Section */}
-        {storyImageUri ? (
-          <View style={styles.imagePreviewContainer}>
-            <Image
-              source={{ uri: storyImageUri }}
-              style={styles.previewImage}
-              resizeMode="cover"
-            />
-            <TouchableOpacity
-              style={styles.changeImageButton}
-              onPress={() => setStoryImageUri(null)}
-            >
-              <Ionicons name="close-circle" size={30} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.imageUploadSection}>
-            <View style={styles.phoneOutline}>
-              <ThemedText style={styles.phoneText}>SHARE YOUR FOOD JOURNEY!</ThemedText>
+      {storyImageUri ? (
+        // Image Selected State - Full screen image with editing tools
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: storyImageUri }}
+            style={styles.fullScreenImage}
+            resizeMode="cover"
+          />
+          
+          {/* Text Input Overlay (shown when showTextInput is true) */}
+          {showTextInput && (
+            <View style={styles.textInputOverlay}>
+              <TextInput
+                style={styles.storyTextInput}
+                value={storyContent}
+                onChangeText={setStoryContent}
+                placeholder="Write your Inspiration..."
+                placeholderTextColor="#666"
+                multiline
+                textAlignVertical="top"
+                maxLength={256}
+              />
             </View>
+          )}
+
+          {/* Editing Tools Bar */}
+          <View style={styles.editingToolsBar}>
+            <TouchableOpacity
+              style={styles.toolButton}
+              onPress={() => setShowTextInput(!showTextInput)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="text" size={24} color="#fff" />
+            </TouchableOpacity>
             
             <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={() => handleImagePicker('library')}
-              activeOpacity={0.8}
+              style={styles.toolButton}
+              onPress={() => {
+                // Sticker/Emoji functionality - placeholder
+                Alert.alert('提示', '贴纸功能即将推出');
+              }}
+              activeOpacity={0.7}
             >
-              <Ionicons name="images" size={24} color="#fff" />
-              <ThemedText style={styles.uploadButtonText}>Upload Image</ThemedText>
+              <Ionicons name="happy" size={24} color="#fff" />
             </TouchableOpacity>
-
-            <ThemedText style={styles.orText}>Or</ThemedText>
-
+            
             <TouchableOpacity
-              style={[styles.uploadButton, styles.cameraButton]}
-              onPress={() => handleImagePicker('camera')}
-              activeOpacity={0.8}
+              style={styles.toolButton}
+              onPress={() => {
+                // Tag/Mention functionality - placeholder
+                Alert.alert('提示', '标签功能即将推出');
+              }}
+              activeOpacity={0.7}
             >
-              <Ionicons name="camera" size={24} color="#fff" />
-              <ThemedText style={styles.uploadButtonText}>Take Photo</ThemedText>
+              <Ionicons name="people" size={24} color="#fff" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.toolButton}
+              onPress={handleCreateStory}
+              disabled={creatingStory}
+              activeOpacity={0.7}
+            >
+              <Ionicons 
+                name={creatingStory ? "hourglass" : "arrow-forward"} 
+                size={24} 
+                color="#fff" 
+              />
             </TouchableOpacity>
           </View>
-        )}
-
-        {/* Title Input */}
-        <View style={styles.inputSection}>
-          <View style={styles.inputHeader}>
-            <ThemedText style={styles.inputLabel}>Title</ThemedText>
-            <ThemedText style={styles.characterCount}>
-              {storyTitle.length}/25
-            </ThemedText>
-          </View>
-          <TextInput
-            style={styles.titleInput}
-            value={storyTitle}
-            onChangeText={setStoryTitle}
-            placeholder="Your title..."
-            placeholderTextColor="#999"
-            maxLength={25}
-          />
         </View>
+      ) : (
+        // Initial State - Background image with phone illustration and buttons
+        <View style={styles.backgroundContainer}>
+          <ImageBackground
+            source={require('../assets/icon.png')}
+            style={styles.backgroundImage}
+            blurRadius={15}
+            imageStyle={styles.backgroundImageStyle}
+          >
+            <View style={styles.overlay} />
+            <View style={styles.initialContent}>
+              {/* Phone Outline with Text */}
+              <View style={styles.phoneOutline}>
+                <View style={styles.phoneInner}>
+                  <ThemedText style={styles.phoneText}>SHARE YOUR FOOD JOURNEY!</ThemedText>
+                </View>
+              </View>
 
-        {/* Content Input */}
-        <View style={styles.inputSection}>
-          <View style={styles.inputHeader}>
-            <ThemedText style={styles.inputLabel}>Description</ThemedText>
-            <ThemedText style={styles.characterCount}>
-              {storyContent.length}/256
-            </ThemedText>
-          </View>
-          <TextInput
-            style={styles.contentInput}
-            value={storyContent}
-            onChangeText={setStoryContent}
-            placeholder="Tap to write a Description..."
-            placeholderTextColor="#999"
-            multiline
-            textAlignVertical="top"
-            maxLength={256}
-          />
+              {/* Upload Image Button */}
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={() => handleImagePicker('library')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="images" size={20} color="#fff" />
+                <ThemedText style={styles.uploadButtonText}>Upload Image</ThemedText>
+              </TouchableOpacity>
+
+              {/* Take Photo Button */}
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={() => handleImagePicker('camera')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="camera" size={20} color="#fff" />
+                <ThemedText style={styles.uploadButtonText}>Take Photo</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </ImageBackground>
         </View>
-
-        {/* Share Button */}
-        <TouchableOpacity
-          style={[
-            styles.shareButton,
-            (!storyContent.trim() && !storyImageUri) && styles.shareButtonDisabled
-          ]}
-          onPress={handleCreateStory}
-          disabled={creatingStory || (!storyContent.trim() && !storyImageUri)}
-          activeOpacity={0.8}
-        >
-          <ThemedText style={styles.shareButtonText}>
-            {creatingStory ? 'Sharing...' : 'Share Post →'}
-          </ThemedText>
-        </TouchableOpacity>
-      </ScrollView>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -288,43 +294,58 @@ export default function CreateStoryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2C5F5F',
+    backgroundColor: REDDISH_BROWN,
   },
   header: {
-    backgroundColor: '#2C5F5F',
+    backgroundColor: REDDISH_BROWN,
     paddingTop: 60,
     paddingBottom: 16,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: '100%',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#fff',
     flex: 1,
-    textAlign: 'center',
+    textAlign: 'left',
   },
-  placeholder: {
+  closeButton: {
     width: 40,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 100,
-  },
-  imageUploadSection: {
-    padding: 20,
+    height: 40,
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Initial State Styles
+  backgroundContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backgroundImageStyle: {
+    opacity: 0.6,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  initialContent: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    zIndex: 1,
   },
   phoneOutline: {
     width: 200,
@@ -334,17 +355,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  phoneInner: {
     padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   phoneText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   uploadButton: {
-    backgroundColor: '#2C5F5F',
+    backgroundColor: REDDISH_BROWN,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -352,93 +379,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '80%',
-    marginBottom: 12,
+    marginBottom: 16,
     gap: 8,
-  },
-  cameraButton: {
-    backgroundColor: '#1a4a4a',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   uploadButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  orText: {
-    color: '#DAA520',
-    fontSize: 16,
-    marginVertical: 8,
-    fontWeight: '600',
-  },
-  imagePreviewContainer: {
+  // Image Selected State Styles
+  imageContainer: {
+    flex: 1,
     width: '100%',
-    height: 400,
     position: 'relative',
   },
-  previewImage: {
+  fullScreenImage: {
     width: '100%',
     height: '100%',
   },
-  changeImageButton: {
+  textInputOverlay: {
     position: 'absolute',
-    top: 16,
+    bottom: 120,
+    left: 16,
     right: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 15,
-  },
-  inputSection: {
-    paddingHorizontal: 16,
-    marginTop: 20,
-  },
-  inputHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  characterCount: {
-    fontSize: 12,
-    color: '#999',
-  },
-  titleInput: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
     padding: 12,
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    minHeight: 50,
+    minHeight: 100,
+    maxHeight: 200,
   },
-  contentInput: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
+  storyTextInput: {
     fontSize: 16,
     color: '#000',
-    minHeight: 120,
+    minHeight: 80,
     textAlignVertical: 'top',
   },
-  shareButton: {
-    backgroundColor: '#2C5F5F',
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginHorizontal: 16,
-    marginTop: 30,
+  editingToolsBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: REDDISH_BROWN,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
+    paddingVertical: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  toolButton: {
+    width: 50,
+    height: 50,
     justifyContent: 'center',
-  },
-  shareButtonDisabled: {
-    backgroundColor: '#999',
-    opacity: 0.5,
-  },
-  shareButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
+    alignItems: 'center',
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
 });
 
