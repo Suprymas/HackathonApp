@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from './HomeScreen';
 import PublishRecipeScreen from './PublishRecipeScreen';
 import FriendsScreen from './FriendsScreen';
-// import ProfileScreen from './screens/ProfileScreen';
+import ProfileScreen from './ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -73,16 +73,16 @@ export default function TabNavigator() {
           ),
         }}
       />
-      {/*<Tab.Screen*/}
-      {/*  name="Profile"*/}
-      {/*  component={ProfileScreen}*/}
-      {/*  options={{*/}
-      {/*    title: 'Profile',*/}
-      {/*    tabBarIcon: ({ color, size }) => (*/}
-      {/*      <Ionicons name="person" size={size} color={color} />*/}
-      {/*    ),*/}
-      {/*  }}*/}
-      {/*/>*/}
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 }
