@@ -206,9 +206,9 @@ export default function ProfileScreen() {
   // Austria Flag Component (horizontal stripes: red-white-red)
   const AustriaFlag = () => (
     <View style={styles.flagContainer}>
-      <View style={[styles.flagStripe, { backgroundColor: '#ED2939' }]} />
+      <View style={[styles.flagStripe, { backgroundColor: '#CC684F' }]} />
       <View style={[styles.flagStripe, { backgroundColor: '#FFFFFF' }]} />
-      <View style={[styles.flagStripe, { backgroundColor: '#ED2939' }]} />
+      <View style={[styles.flagStripe, { backgroundColor: '#CC684F' }]} />
     </View>
   );
 

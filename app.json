@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "hack",
-    "slug": "hack",
+    "name": "HungryBear",
+    "slug": "hungrybear",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,16 +10,18 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#8B4513"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hungrybear.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#8B4513"
       },
+      "package": "com.hungrybear.app",
       "edgeToEdgeEnabled": true
     },
     "web": {

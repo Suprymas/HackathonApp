@@ -13,16 +13,16 @@ const Tab = createBottomTabNavigator();
 
 const Colors = {
   light: {
-    tint: '#CC684F',
+    tint: '#FFFFFF', // White for active icons
     background: '#fff',
     text: '#000',
-    tabBar: '#CC684F',
+    tabBar: '#CC684F', // Warm reddish-brown matching Stories section
   },
   dark: {
-    tint: '#CC684F',
+    tint: '#FFFFFF', // White for active icons
     background: '#000',
     text: '#fff',
-    tabBar: '#CC684F',
+    tabBar: '#CC684F', // Warm reddish-brown matching Stories section
   },
 };
 
@@ -34,12 +34,18 @@ export default function TabNavigator() {
     <Tab.Navigator
       id={"tabNavigator"}
       screenOptions={{
-        tabBarActiveTintColor: colors.tint,
-        tabBarInactiveTintColor: colorScheme === 'dark' ? '#8e8e93' : '#8e8e93',
+        tabBarActiveTintColor: colors.tint, // White for active
+        tabBarInactiveTintColor: '#FFFFFF', // White for inactive icons too (with opacity handled by React Navigation)
         headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.tabBar,
-          borderTopColor: colorScheme === 'dark' ? '#2c2c2e' : '#e5e5ea',
+          borderTopColor: 'transparent',
+          borderTopWidth: 0,
+        },
+        tabBarLabelStyle: {
+          color: '#FFFFFF', // White text for labels
+          fontSize: 12,
+          fontWeight: '500',
         },
       }}
     >

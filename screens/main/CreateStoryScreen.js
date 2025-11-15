@@ -16,7 +16,7 @@ import { ThemedText } from '../../components/ThemedText';
 import { supabase, uploadImage } from '../../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
 
-const CORAL = '#FF6B6B'; // Coral color from design
+const CORAL = '#CC684F'; // Coral color from design
 const DARK_GREY = '#2C2C2E'; // Dark grey for background
 
 export default function CreateStoryScreen({ navigation }) {

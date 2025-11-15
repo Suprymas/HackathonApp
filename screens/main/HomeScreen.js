@@ -330,23 +330,23 @@ export default function FeedScreen({navigation}) {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#DAA520', // Yellow background for the entire screen
+    backgroundColor: '#333333', // Dark gray background for the entire screen
     width: '100%',
     height: '100%',
   },
   container: {
     flex: 1,
-    backgroundColor: '#DAA520', // Ensure container also has yellow background
+    backgroundColor: '#333333', // Dark gray background
   },
   scrollContent: {
     flexGrow: 1,
-    backgroundColor: '#DAA520', // Yellow background extends with content
+    backgroundColor: '#333333', // Dark gray background extends with content
     minHeight: '100%', // Ensure minimum height to fill screen
-    paddingBottom: 100, // Extra padding at bottom to ensure yellow background shows
+    paddingBottom: 100, // Extra padding at bottom to ensure background shows
   },
   // Stories Section
   storiesSection: {
-    backgroundColor: '#2C5F5F', // Dark teal/green
+    backgroundColor: '#CC684F', // Warm reddish-brown
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 16,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   },
   // Recipes Section
   recipesSection: {
-    backgroundColor: '#DAA520', // Mustard yellow
+    backgroundColor: '#333333', // Dark gray
     paddingTop: 20,
     paddingBottom: 40, // Increased bottom padding for better scrolling
     paddingHorizontal: 16,
@@ -492,10 +492,10 @@ const styles = StyleSheet.create({
     margin: 16,
     marginTop: 20,
     borderRadius: 8,
-    backgroundColor: '#FFEBEB',
+    backgroundColor: '#F5E6E3', // Light version of #CC684F
   },
   errorText: {
-    color: '#c62828',
+    color: '#CC684F',
     marginBottom: 12,
   },
   retryButton: {

@@ -243,7 +243,7 @@ export default function RecipeDetailScreen(props) {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#2C5F5F',
+    backgroundColor: '#CC684F',
   },
   loadingContainer: {
     flex: 1,
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
   },
   contentSection: {
-    backgroundColor: '#DAA520', // Yellow-orange background
+    backgroundColor: '#6F6C6C', // Gray background
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 40,
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   navButton: {
-    backgroundColor: '#2C5F5F',
+    backgroundColor: '#CC684F',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 20,
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   errorText: {
-    color: '#c62828',
+    color: '#CC684F',
     marginBottom: 12,
     textAlign: 'center',
   },
