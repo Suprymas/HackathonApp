@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Dimensions } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '../components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../services/Supabase';
@@ -93,15 +92,12 @@ const mockRecipes = [
     },
   },
 ];
-export default function FeedScreen({ navigation }) {
+export default function FeedScreen() {
   const [recipes, setRecipes] = useState(mockRecipes);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [stories, setStories] = useState([]);
-  const [storiesLoading, setStoriesLoading] = useState(false);
 
   useEffect(() => {
-    loadStories();
     // Uncomment to load from API
     const loadRecipes = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -129,58 +125,10 @@ export default function FeedScreen({ navigation }) {
   console.log(typeof (recipes))
   console.log("recipes", recipes)
 
-  // Reload stories when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      loadStories();
-    }, [])
-  );
 
-  const loadStories = async () => {
-    try {
-      setStoriesLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setStories([]);
-        return;
-      }
 
-      // Load stories from all users (public stories)
-      const { data, error } = await supabase
-        .from('food_statuses')
-        .select(`
-          *,
-          author:author_id(id, username)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-
-      setStories(data || []);
-    } catch (error) {
-      console.error('Error loading stories:', error);
-      setStories([]);
-    } finally {
-      setStoriesLoading(false);
-    }
-  };
-
-  const loadRecipes = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // TODO: Implement recipe loading from API
-      // For now, using mockRecipes
-      setRecipes(mockRecipes);
-    } catch (error) {
-      console.error('Error loading recipes:', error);
-      setError('Failed to load recipes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Mock stories data - you can replace this with actual API call
+  const stories = Array.from({ length: 6 }, (_, i) => ({ id: i }));
 
   return (
     <View style={styles.outerContainer}>
@@ -200,34 +148,15 @@ export default function FeedScreen({ navigation }) {
             style={styles.storiesScroll}
             contentContainerStyle={styles.storiesContent}
           >
-            {/* Add Story Button */}
-            <TouchableOpacity
-              style={styles.storyCircle}
-              onPress={() => navigation.navigate('CreateStory')}
-              activeOpacity={0.7}
-            >
-              <ThemedText style={styles.addStoryIcon}>+</ThemedText>
-            </TouchableOpacity>
-            
-            {/* Existing Stories */}
-            {stories.map((story) => (
+            {stories.map((story, index) => (
               <TouchableOpacity
                 key={story.id}
                 style={styles.storyCircle}
-                activeOpacity={0.7}
               >
-                {story.image_url ? (
-                  <Image
-                    source={{ uri: story.image_url }}
-                    style={styles.storyImage}
-                    resizeMode="cover"
-                  />
+                {index === 0 ? (
+                  <ThemedText style={styles.addStoryIcon}>+</ThemedText>
                 ) : (
-                  <View style={styles.storyPlaceholder}>
-                    <ThemedText style={styles.storyInitial}>
-                      {story.author?.username?.charAt(0).toUpperCase() || 'U'}
-                    </ThemedText>
-                  </View>
+                  <View style={styles.storyPlaceholder} />
                 )}
               </TouchableOpacity>
             ))}
@@ -484,15 +413,5 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontWeight: '600',
-  },
-  storyImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-  },
-  storyInitial: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#666',
   },
 });

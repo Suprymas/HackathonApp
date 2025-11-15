@@ -29,10 +29,11 @@ export default function RecipeDetailScreen(props) {
     const getRecipe = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       const { data: recipeData, error: recipeError } = await supabase.rpc("get_recipe", { p_recipe_id: id })
-      console.log('recipeIngredients', recipeData.ingredients)
+      const { data: username, error: UserError } = await supabase.from('profiles').select('username').eq('id', recipeData.recipe.user_id);
+      //console.error(UserError);
       setIngredienList(recipeData.ingredients);
       setStepsList(recipeData.steps);
-      setRecipe(recipeData.recipe);
+      setRecipe({ ...recipeData.recipe, username: username[0].username });
       setLoading(false)
       console.log("current", recipe)
     }
@@ -126,7 +127,7 @@ export default function RecipeDetailScreen(props) {
               <View style={styles.authorRow}>
                 <View style={styles.authorAvatar} />
                 <ThemedText style={styles.authorName}>
-                  {recipe.author?.username || 'Unknown'}
+                  {recipe.username || 'Unknown'}
                 </ThemedText>
               </View>
             </View>
