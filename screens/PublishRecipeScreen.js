@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../components/ThemedText';
 
 export default function PublishRecipeScreen() {
@@ -52,9 +53,84 @@ export default function PublishRecipeScreen() {
     setPreparationSteps(newSteps);
   };
 
-  const handleImagePicker = () => {
-    // Placeholder for image picker - in a real app, you would use expo-image-picker
-    Alert.alert('Image Picker', 'Image picker functionality will be implemented here');
+  const requestPermissions = async () => {
+    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
+      Alert.alert(
+        '权限需要',
+        '需要相机和相册权限才能上传图片',
+        [{ text: '确定' }]
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const handleImagePicker = async (type = 'main', stepId = null) => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    Alert.alert(
+      '选择图片',
+      '请选择图片来源',
+      [
+        {
+          text: '取消',
+          style: 'cancel',
+        },
+        {
+          text: '从相册选择',
+          onPress: async () => {
+            try {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: type === 'main' ? [16, 9] : [4, 3],
+                quality: 0.8,
+              });
+
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                const imageUri = result.assets[0].uri;
+                if (type === 'main') {
+                  setMainImageUri(imageUri);
+                } else if (stepId) {
+                  handleStepImageChange(stepId, imageUri);
+                }
+              }
+            } catch (error) {
+              Alert.alert('错误', '选择图片时出错');
+            }
+          },
+        },
+        {
+          text: '使用相机',
+          onPress: async () => {
+            try {
+              const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: type === 'main' ? [16, 9] : [4, 3],
+                quality: 0.8,
+              });
+
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                const imageUri = result.assets[0].uri;
+                if (type === 'main') {
+                  setMainImageUri(imageUri);
+                } else if (stepId) {
+                  handleStepImageChange(stepId, imageUri);
+                }
+              }
+            } catch (error) {
+              Alert.alert('错误', '拍照时出错');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handlePost = async () => {
@@ -126,7 +202,7 @@ export default function PublishRecipeScreen() {
         {/* Main Image Upload Area */}
         <TouchableOpacity
           style={styles.mainImageContainer}
-          onPress={handleImagePicker}
+          onPress={() => handleImagePicker('main')}
           activeOpacity={0.8}
         >
           {mainImageUri ? (
@@ -196,7 +272,7 @@ export default function PublishRecipeScreen() {
               <ThemedText style={styles.stepLabel}>{index + 1}. step</ThemedText>
               <TouchableOpacity
                 style={styles.stepImageContainer}
-                onPress={() => handleImagePicker()}
+                onPress={() => handleImagePicker('step', step.id)}
                 activeOpacity={0.8}
               >
                 {step.imageUri ? (
