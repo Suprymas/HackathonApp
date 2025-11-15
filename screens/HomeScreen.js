@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Dimensions } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding (16px padding on each side + 16px gap)
@@ -99,6 +100,7 @@ export default function FeedScreen() {
     // Uncomment to load from API
     // loadRecipes();
   }, []);
+  const navigator = useNavigation();
 
 
 
@@ -158,7 +160,7 @@ export default function FeedScreen() {
                 <TouchableOpacity
                   key={recipe.id}
                   style={styles.recipeCard}
-                  onPress={() => router.push(`/recipeDetail/${recipe.id}`)}
+                  onPress={() => navigator.navigate('RecipeDetail', { id: recipe.id })}
                   activeOpacity={0.7}
                 >
                   {recipe.image_url ? (
@@ -202,8 +204,8 @@ export default function FeedScreen() {
             </View>
           )}
         </View>
-      </ScrollView>
-    </View>
+      </ScrollView >
+    </View >
   );
 }
 
