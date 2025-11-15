@@ -12,6 +12,11 @@ import RecipeDetailScreen from "./screens/RecipeDetailScreen";
 import SettingsScreen from './screens/SettingsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import GroupChatScreen from './screens/GroupChatScreen';
+import AddNewFriendScreen from './screens/AddNewFriendScreen';
+import AddNewGroupScreen from './screens/AddNewGroupScreen';
+import ProfileSettingsScreen from './screens/ProfileSettingsScreen';
+import PrivacyScreen from './screens/PrivacyScreen';
+import AboutScreen from './screens/AboutScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -75,6 +80,11 @@ export default function App() {
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="GroupChat" component={GroupChatScreen} />
+        <Stack.Screen name="AddNewFriend" component={AddNewFriendScreen} />
+        <Stack.Screen name="AddNewGroup" component={AddNewGroupScreen} />
+        <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
+        <Stack.Screen name="Privacy" component={PrivacyScreen} />
+        <Stack.Screen name="About" component={AboutScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>
