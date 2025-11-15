@@ -9,18 +9,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ImageBackground,
+  Text,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../components/ThemedText';
 import { supabase } from '../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
 
-const REDDISH_BROWN = '#8B4513'; // Reddish-brown color from design
+const CORAL = '#FF6B6B'; // Coral color from design
+const DARK_GREY = '#2C2C2E'; // Dark grey for background
 
 export default function CreateStoryScreen({ navigation }) {
   const [storyContent, setStoryContent] = useState('');
   const [storyImageUri, setStoryImageUri] = useState(null);
-  const [showTextInput, setShowTextInput] = useState(false);
   const [creatingStory, setCreatingStory] = useState(false);
 
   const requestPermissions = async () => {
@@ -29,9 +30,9 @@ export default function CreateStoryScreen({ navigation }) {
     
     if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
       Alert.alert(
-        '权限需要',
-        '需要相机和相册权限才能上传图片',
-        [{ text: '确定' }]
+        'Permission Required',
+        'Camera and photo library permissions are required to upload images',
+        [{ text: 'OK' }]
       );
       return false;
     }
@@ -62,14 +63,14 @@ export default function CreateStoryScreen({ navigation }) {
         setStoryImageUri(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('错误', '选择图片时出错');
+      Alert.alert('Error', 'Error selecting image');
     }
   };
 
   const uploadImageToSupabase = async (imageUri) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('用户未登录');
+      if (!user) throw new Error('User not logged in');
 
       // Create a unique filename
       const timestamp = Date.now();
@@ -108,13 +109,13 @@ export default function CreateStoryScreen({ navigation }) {
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
-      throw new Error('图片上传失败，请检查网络连接和存储配置');
+      throw new Error('Image upload failed. Please check your network connection and storage configuration');
     }
   };
 
   const handleCreateStory = async () => {
     if (!storyImageUri) {
-      Alert.alert('提示', '请先选择一张图片');
+      Alert.alert('Notice', 'Please select an image first');
       return;
     }
 
@@ -122,7 +123,7 @@ export default function CreateStoryScreen({ navigation }) {
       setCreatingStory(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        Alert.alert('错误', '请先登录');
+        Alert.alert('Error', 'Please log in first');
         return;
       }
 
@@ -142,9 +143,9 @@ export default function CreateStoryScreen({ navigation }) {
 
       if (error) throw error;
 
-      Alert.alert('成功', 'Story 已发布！', [
+      Alert.alert('Success', 'Story published!', [
         {
-          text: '确定',
+          text: 'OK',
           onPress: () => {
             navigation.goBack();
           },
@@ -152,7 +153,7 @@ export default function CreateStoryScreen({ navigation }) {
       ]);
     } catch (error) {
       console.error('Error creating story:', error);
-      Alert.alert('错误', error.message || '发布 Story 时出错');
+      Alert.alert('Error', error.message || 'Error publishing story');
     } finally {
       setCreatingStory(false);
     }
@@ -163,7 +164,12 @@ export default function CreateStoryScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Header */}
+      {/* Header - Grey text at top */}
+      <View style={styles.headerTop}>
+        <ThemedText style={styles.headerTopText}>Create Story</ThemedText>
+      </View>
+      
+      {/* Header - Coral bar */}
       <View style={styles.header}>
         <ThemedText style={styles.headerTitle}>Create new Story</ThemedText>
         <TouchableOpacity
@@ -183,48 +189,53 @@ export default function CreateStoryScreen({ navigation }) {
             resizeMode="cover"
           />
           
-          {/* Text Input Overlay (shown when showTextInput is true) */}
-          {showTextInput && (
-            <View style={styles.textInputOverlay}>
-              <TextInput
-                style={styles.storyTextInput}
-                value={storyContent}
-                onChangeText={setStoryContent}
-                placeholder="Write your Inspiration..."
-                placeholderTextColor="#666"
-                multiline
-                textAlignVertical="top"
-                maxLength={256}
-              />
-            </View>
-          )}
+          {/* Text Input Overlay - Always visible when image is selected */}
+          <View style={styles.textInputOverlay}>
+            <TextInput
+              style={styles.storyTextInput}
+              value={storyContent}
+              onChangeText={setStoryContent}
+              placeholder="Write your Inspiration..."
+              placeholderTextColor="#666"
+              multiline
+              textAlignVertical="top"
+              maxLength={250}
+            />
+            <ThemedText style={styles.characterCount}>
+              {storyContent.length}/250
+            </ThemedText>
+          </View>
 
           {/* Editing Tools Bar */}
           <View style={styles.editingToolsBar}>
-            <TouchableOpacity
-              style={styles.toolButton}
-              onPress={() => setShowTextInput(!showTextInput)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="text" size={24} color="#fff" />
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.toolButton}
-              onPress={() => {
-                // Sticker/Emoji functionality - placeholder
-                Alert.alert('提示', '贴纸功能即将推出');
-              }}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="happy" size={24} color="#fff" />
-            </TouchableOpacity>
+            <View style={styles.toolGroup}>
+              <TouchableOpacity
+                style={styles.toolButton}
+                onPress={() => {
+                  // Sticker/Emoji functionality - placeholder
+                  Alert.alert('Notice', 'Sticker feature coming soon');
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="happy" size={24} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.toolButton}
+                onPress={() => {
+                  // Sticker/Emoji functionality - placeholder
+                  Alert.alert('Notice', 'Sticker feature coming soon');
+                }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="images" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
             
             <TouchableOpacity
               style={styles.toolButton}
               onPress={() => {
                 // Tag/Mention functionality - placeholder
-                Alert.alert('提示', '标签功能即将推出');
+                Alert.alert('Notice', 'Tag feature coming soon');
               }}
               activeOpacity={0.7}
             >
@@ -256,10 +267,20 @@ export default function CreateStoryScreen({ navigation }) {
           >
             <View style={styles.overlay} />
             <View style={styles.initialContent}>
-              {/* Phone Outline with Text */}
+              {/* Phone Outline with Text and Icons */}
               <View style={styles.phoneOutline}>
                 <View style={styles.phoneInner}>
-                  <ThemedText style={styles.phoneText}>SHARE YOUR FOOD JOURNEY!</ThemedText>
+                  {/* Decorative Icons */}
+                  <View style={styles.phoneIconsContainer}>
+                    <Ionicons name="camera" size={20} color="#fff" style={styles.phoneIcon} />
+                    <Ionicons name="restaurant" size={20} color="#fff" style={styles.phoneIcon} />
+                    <Ionicons name="chatbubble" size={20} color="#fff" style={styles.phoneIcon} />
+                    <Ionicons name="heart" size={20} color="#fff" style={styles.phoneIcon} />
+                    <Ionicons name="restaurant-outline" size={20} color="#fff" style={styles.phoneIcon} />
+                  </View>
+                  <Text style={styles.phoneText}>
+                    SHARE YOUR <Text style={styles.phoneTextHighlight}>FOOD</Text> JOURNEY!
+                  </Text>
                 </View>
               </View>
 
@@ -293,11 +314,22 @@ export default function CreateStoryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: REDDISH_BROWN,
+    backgroundColor: DARK_GREY,
+  },
+  headerTop: {
+    paddingTop: 60,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+    backgroundColor: DARK_GREY,
+  },
+  headerTopText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#8E8E93',
   },
   header: {
-    backgroundColor: REDDISH_BROWN,
-    paddingTop: 60,
+    backgroundColor: CORAL,
+    paddingTop: 12,
     paddingBottom: 16,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -362,6 +394,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  phoneIconsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  phoneIcon: {
+    marginHorizontal: 4,
+  },
   phoneText: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -369,8 +412,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 0.5,
   },
+  phoneTextHighlight: {
+    color: CORAL,
+  },
   uploadButton: {
-    backgroundColor: REDDISH_BROWN,
+    backgroundColor: CORAL,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -403,34 +449,47 @@ const styles = StyleSheet.create({
   },
   textInputOverlay: {
     position: 'absolute',
-    bottom: 120,
+    bottom: 100,
     left: 16,
     right: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 12,
     padding: 12,
-    minHeight: 100,
-    maxHeight: 200,
+    minHeight: 80,
+    maxHeight: 150,
   },
   storyTextInput: {
     fontSize: 16,
     color: '#000',
-    minHeight: 80,
+    minHeight: 60,
     textAlignVertical: 'top',
+    paddingRight: 60,
+  },
+  characterCount: {
+    position: 'absolute',
+    right: 12,
+    bottom: 12,
+    fontSize: 12,
+    color: '#666',
   },
   editingToolsBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: REDDISH_BROWN,
+    backgroundColor: CORAL,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 16,
+    paddingHorizontal: 20,
     paddingBottom: Platform.OS === 'ios' ? 34 : 16,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  toolGroup: {
+    flexDirection: 'row',
+    gap: 12,
   },
   toolButton: {
     width: 50,

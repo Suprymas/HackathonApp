@@ -101,7 +101,7 @@ export default function FeedScreen() {
 
   const navigator = useNavigation();
 
-  // 从 Supabase 加载 recipes（带错误处理），同时 Retry 按钮也会用这个函数
+  // Load recipes from Supabase (with error handling), this function is also used by the Retry button
   const loadRecipes = async () => {
     try {
       setLoading(true);
@@ -159,7 +159,7 @@ export default function FeedScreen() {
   console.log(typeof recipes);
   console.log('recipes', recipes);
 
-  // 先用 mock 的 stories，将来再接后端
+  // Use mock stories for now, will connect to backend later
   const stories = Array.from({ length: 6 }, (_, i) => ({ id: i }));
 
   return (
@@ -181,7 +181,11 @@ export default function FeedScreen() {
             contentContainerStyle={styles.storiesContent}
           >
             {stories.map((story, index) => (
-              <TouchableOpacity key={story.id} style={styles.storyCircle}>
+              <TouchableOpacity 
+                key={story.id} 
+                style={styles.storyCircle}
+                onPress={() => index === 0 ? navigator.navigate('CreateStory') : null}
+              >
                 {index === 0 ? (
                   <ThemedText style={styles.addStoryIcon}>+</ThemedText>
                 ) : (
