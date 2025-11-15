@@ -33,7 +33,13 @@ export default function LoginScreen({ navigation }) {
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Logged in successfully!');
+      Alert.alert('Success', 'Logged in successfully!',[
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('tabNavigator'),
+        },
+      ]);
+
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {
