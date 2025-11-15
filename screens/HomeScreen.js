@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Dimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '../components/ThemedText';
+import { supabase } from '../services/Supabase';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding (16px padding on each side + 16px gap)
@@ -90,20 +92,56 @@ const mockRecipes = [
     },
   },
 ];
-export default function FeedScreen() {
+export default function FeedScreen({ navigation }) {
   const [recipes, setRecipes] = useState(mockRecipes);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [stories, setStories] = useState([]);
+  const [storiesLoading, setStoriesLoading] = useState(false);
 
   useEffect(() => {
+    loadStories();
     // Uncomment to load from API
     // loadRecipes();
   }, []);
 
+  // Reload stories when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadStories();
+    }, [])
+  );
 
+  const loadStories = async () => {
+    try {
+      setStoriesLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setStories([]);
+        return;
+      }
 
-  // Mock stories data - you can replace this with actual API call
-  const stories = Array.from({ length: 6 }, (_, i) => ({ id: i }));
+      // Load stories from all users (public stories)
+      const { data, error } = await supabase
+        .from('food_statuses')
+        .select(`
+          *,
+          author:author_id(id, username)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      setStories(data || []);
+    } catch (error) {
+      console.error('Error loading stories:', error);
+      setStories([]);
+    } finally {
+      setStoriesLoading(false);
+    }
+  };
+
 
   return (
     <View style={styles.outerContainer}>
@@ -123,15 +161,34 @@ export default function FeedScreen() {
             style={styles.storiesScroll}
             contentContainerStyle={styles.storiesContent}
           >
-            {stories.map((story, index) => (
+            {/* Add Story Button */}
+            <TouchableOpacity
+              style={styles.storyCircle}
+              onPress={() => navigation.navigate('CreateStory')}
+              activeOpacity={0.7}
+            >
+              <ThemedText style={styles.addStoryIcon}>+</ThemedText>
+            </TouchableOpacity>
+            
+            {/* Existing Stories */}
+            {stories.map((story) => (
               <TouchableOpacity
                 key={story.id}
                 style={styles.storyCircle}
+                activeOpacity={0.7}
               >
-                {index === 0 ? (
-                  <ThemedText style={styles.addStoryIcon}>+</ThemedText>
+                {story.image_url ? (
+                  <Image
+                    source={{ uri: story.image_url }}
+                    style={styles.storyImage}
+                    resizeMode="cover"
+                  />
                 ) : (
-                  <View style={styles.storyPlaceholder} />
+                  <View style={styles.storyPlaceholder}>
+                    <ThemedText style={styles.storyInitial}>
+                      {story.author?.username?.charAt(0).toUpperCase() || 'U'}
+                    </ThemedText>
+                  </View>
                 )}
               </TouchableOpacity>
             ))}
@@ -388,5 +445,15 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  storyImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+  },
+  storyInitial: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#666',
   },
 });

@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './screens/LoginScreen';
 import SignUpScreen from './screens/SignUpScreen';
 import TabNavigator from "./screens/TabNavigator";
+import CreateStoryScreen from "./screens/CreateStoryScreen";
 import {supabase} from "./services/Supabase";
 import {ActivityIndicator, View, StyleSheet} from "react-native";
 
@@ -65,6 +66,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="tabNavigator" component={TabNavigator} />
+        <Stack.Screen name="CreateStory" component={CreateStoryScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>
