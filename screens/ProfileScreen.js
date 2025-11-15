@@ -148,10 +148,10 @@ export default function ProfileScreen() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <ThemedText style={styles.headerTitle} lightColor="#fff" darkColor="#fff">
-            Your profil
+            Your profile
           </ThemedText>
           <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={24} color="#fff" />
+            <Ionicons name="menu-outline" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -400,6 +400,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginTop: 8,
+    paddingTop: 4,
   },
   profileId: {
     fontSize: 14,

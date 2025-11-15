@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Dimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '../components/ThemedText';
+<<<<<<< HEAD
 import { supabase } from '../services/Supabase';
+=======
+import { useNavigation } from '@react-navigation/native';
+>>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding (16px padding on each side + 16px gap)
@@ -104,6 +108,7 @@ export default function FeedScreen({ navigation }) {
     // Uncomment to load from API
     // loadRecipes();
   }, []);
+  const navigator = useNavigation();
 
   // Reload stories when screen comes into focus
   useFocusEffect(
@@ -215,7 +220,7 @@ export default function FeedScreen({ navigation }) {
                 <TouchableOpacity
                   key={recipe.id}
                   style={styles.recipeCard}
-                  onPress={() => router.push(`/recipeDetail/${recipe.id}`)}
+                  onPress={() => navigator.navigate('RecipeDetail', { id: recipe.id })}
                   activeOpacity={0.7}
                 >
                   {recipe.image_url ? (
@@ -259,8 +264,8 @@ export default function FeedScreen({ navigation }) {
             </View>
           )}
         </View>
-      </ScrollView>
-    </View>
+      </ScrollView >
+    </View >
   );
 }
 

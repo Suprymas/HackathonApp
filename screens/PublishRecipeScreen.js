@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../components/ThemedText';
+import { supabase, uploadImage } from '../services/Supabase';
 
 export default function PublishRecipeScreen() {
   const [title, setTitle] = useState('');
@@ -54,6 +55,7 @@ export default function PublishRecipeScreen() {
   };
 
   const requestPermissions = async () => {
+<<<<<<< HEAD
     const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
     const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
@@ -63,11 +65,17 @@ export default function PublishRecipeScreen() {
         '需要相机和相册权限才能上传图片',
         [{ text: '确定' }]
       );
+=======
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your photos to upload images.');
+>>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
       return false;
     }
     return true;
   };
 
+<<<<<<< HEAD
   const handleImagePicker = async (type = 'main', stepId = null) => {
     const hasPermission = await requestPermissions();
     if (!hasPermission) return;
@@ -131,9 +139,52 @@ export default function PublishRecipeScreen() {
       ],
       { cancelable: true }
     );
+=======
+  const pickMainImage = async () => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setMainImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const pickStepImage = async (stepId) => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        handleStepImageChange(stepId, result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+>>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
   };
 
   const handlePost = async () => {
+    // Validate required fields
     if (!title || !ingredients.some(ing => ing.trim()) || !preparationSteps.some(step => step.description.trim())) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
@@ -141,13 +192,97 @@ export default function PublishRecipeScreen() {
 
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      Alert.alert('Success', 'Recipe created!', [
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        Alert.alert('Error', 'You must be logged in to post a recipe');
+        setLoading(false);
+        return;
+      }
+
+      // Upload main image if exists
+      let mainImageUrl = null;
+      if (mainImageUri) {
+        mainImageUrl = await uploadImage(mainImageUri, 'recipe-images', `main/${user.id}`);
+      }
+
+      // Parse tags (comma-separated string to array)
+      const tagsArray = tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+
+      // Insert recipe
+      const { data: recipe, error: recipeError } = await supabase
+        .from('recipes')
+        .insert({
+          user_id: user.id,
+          title,
+          story: story || null,
+          tags: tagsArray,
+          main_image_url: mainImageUrl,
+        })
+        .select()
+        .single();
+
+      if (recipeError) throw recipeError;
+
+      // Insert ingredients
+      const ingredientsData = ingredients
+        .filter(ing => ing.trim())
+        .map((ingredient, index) => ({
+          recipe_id: recipe.id,
+          ingredient: ingredient.trim(),
+          order_index: index,
+        }));
+
+      if (ingredientsData.length > 0) {
+        const { error: ingredientsError } = await supabase
+          .from('recipe_ingredients')
+          .insert(ingredientsData);
+
+        if (ingredientsError) throw ingredientsError;
+      }
+
+      // Upload step images and insert steps
+      const stepsData = await Promise.all(
+        preparationSteps
+          .filter(step => step.description.trim())
+          .map(async (step, index) => {
+            let stepImageUrl = null;
+            if (step.imageUri) {
+              stepImageUrl = await uploadImage(
+                step.imageUri,
+                'recipe-images',
+                `steps/${user.id}/${recipe.id}`
+              );
+            }
+
+            return {
+              recipe_id: recipe.id,
+              step_number: index + 1,
+              description: step.description.trim(),
+              image_url: stepImageUrl,
+            };
+          })
+      );
+
+      if (stepsData.length > 0) {
+        const { error: stepsError } = await supabase
+          .from('recipe_steps')
+          .insert(stepsData);
+
+        if (stepsError) throw stepsError;
+      }
+
+      // Success!
+      Alert.alert('Success', 'Recipe created successfully!', [
         {
           text: 'OK',
           onPress: () => {
-            // Clear form after successful creation
+            // Clear form
             setTitle('');
             setStory('');
             setTags('');
@@ -157,18 +292,22 @@ export default function PublishRecipeScreen() {
           },
         },
       ]);
+    } catch (error) {
+      console.error('Error creating recipe:', error);
+      Alert.alert('Error', `Failed to create recipe: ${error.message}`);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Recipe',
-      'Are you sure you want to delete this recipe?',
+      'Clear Form',
+      'Are you sure you want to clear all fields?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'Clear',
           style: 'destructive',
           onPress: () => {
             setTitle('');
@@ -202,7 +341,11 @@ export default function PublishRecipeScreen() {
         {/* Main Image Upload Area */}
         <TouchableOpacity
           style={styles.mainImageContainer}
+<<<<<<< HEAD
           onPress={() => handleImagePicker('main')}
+=======
+          onPress={pickMainImage}
+>>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
           activeOpacity={0.8}
         >
           {mainImageUri ? (
@@ -210,6 +353,7 @@ export default function PublishRecipeScreen() {
           ) : (
             <View style={styles.imagePlaceholder}>
               <ThemedText style={styles.placeholderIcon}>🏔️☀️</ThemedText>
+              <ThemedText style={styles.placeholderText}>Tap to add main image</ThemedText>
             </View>
           )}
         </TouchableOpacity>
@@ -241,7 +385,7 @@ export default function PublishRecipeScreen() {
             style={styles.input}
             value={tags}
             onChangeText={setTags}
-            placeholder="Choose tags"
+            placeholder="Choose tags (comma-separated)"
             placeholderTextColor="#999"
           />
 
@@ -272,7 +416,11 @@ export default function PublishRecipeScreen() {
               <ThemedText style={styles.stepLabel}>{index + 1}. step</ThemedText>
               <TouchableOpacity
                 style={styles.stepImageContainer}
+<<<<<<< HEAD
                 onPress={() => handleImagePicker('step', step.id)}
+=======
+                onPress={() => pickStepImage(step.id)}
+>>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
                 activeOpacity={0.8}
               >
                 {step.imageUri ? (
@@ -284,6 +432,7 @@ export default function PublishRecipeScreen() {
                 ) : (
                   <View style={styles.stepImagePlaceholder}>
                     <ThemedText style={styles.placeholderIcon}>🏔️☀️</ThemedText>
+                    <ThemedText style={styles.placeholderTextSmall}>Tap to add image</ThemedText>
                   </View>
                 )}
               </TouchableOpacity>
@@ -312,11 +461,12 @@ export default function PublishRecipeScreen() {
               style={[styles.actionButton, styles.deleteButton]}
               onPress={handleDelete}
               activeOpacity={0.8}
+              disabled={loading}
             >
-              <ThemedText style={styles.actionButtonText}>Delete</ThemedText>
+              <ThemedText style={styles.actionButtonText}>Clear</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.postButton]}
+              style={[styles.actionButton, styles.postButton, loading && styles.disabledButton]}
               onPress={handlePost}
               disabled={loading}
               activeOpacity={0.8}
@@ -380,6 +530,16 @@ const styles = StyleSheet.create({
   placeholderIcon: {
     fontSize: 48,
     color: '#999',
+  },
+  placeholderText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
+  },
+  placeholderTextSmall: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
   },
   contentSection: {
     backgroundColor: '#2C2C2C',
@@ -465,6 +625,9 @@ const styles = StyleSheet.create({
   },
   postButton: {
     backgroundColor: '#CC684F',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   actionButtonText: {
     color: '#fff',

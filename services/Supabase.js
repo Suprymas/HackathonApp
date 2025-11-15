@@ -12,3 +12,53 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+// Helper function to upload image to Supabase Storage
+export const uploadImage = async (uri, bucket, path) => {
+  try {
+    console.log('uploadImage', uri, bucket, path);
+
+    // Get file extension from URI
+    const ext = uri.split('.').pop().split('?')[0]; // Remove query params if any
+    const fileName = `${path}_${Date.now()}.${ext}`;
+
+    // For React Native, we need to use FormData or ArrayBuffer
+    // Create a file object from URI
+    const file = {
+      uri: uri,
+      name: fileName,
+      type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+    };
+
+    // Read the file as base64 if on React Native
+    const response = await fetch(uri);
+    const arrayBuffer = await response.arrayBuffer();
+
+    // Upload to Supabase Storage using ArrayBuffer
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, arrayBuffer, {
+        contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) {
+      console.error('Supabase upload error:', error);
+      throw error;
+    }
+
+    console.log('Upload successful:', data);
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(fileName);
+
+    console.log('Public URL:', publicUrl);
+    return publicUrl;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+};
