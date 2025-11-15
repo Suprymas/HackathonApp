@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 // Import your screen components
 import HomeScreen from './HomeScreen';
-// import PublishRecipeScreen from './screens/PublishRecipeScreen';
+import PublishRecipeScreen from './PublishRecipeScreen';
 // import FriendsScreen from './screens/FriendsScreen';
 // import ProfileScreen from './screens/ProfileScreen';
 
@@ -53,16 +53,16 @@ export default function TabNavigator() {
           ),
         }}
       />
-      {/*<Tab.Screen*/}
-      {/*  name="PublishRecipe"*/}
-      {/*  component={PublishRecipeScreen}*/}
-      {/*  options={{*/}
-      {/*    title: 'Publish Recipe',*/}
-      {/*    tabBarIcon: ({ color, size }) => (*/}
-      {/*      <Ionicons name="add-circle" size={size} color={color} />*/}
-      {/*    ),*/}
-      {/*  }}*/}
-      {/*/>*/}
+      <Tab.Screen
+        name="PublishRecipe"
+        component={PublishRecipeScreen}
+        options={{
+          title: 'Publish Recipe',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="add-circle" size={size} color={color} />
+          ),
+        }}
+      />
       {/*<Tab.Screen*/}
       {/*  name="Friends"*/}
       {/*  component={FriendsScreen}*/}
