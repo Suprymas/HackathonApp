@@ -111,7 +111,15 @@ export default function FeedScreen({ navigation }) {
         .eq('user_id', user.id);
       //console.error(recipesError);
       console.log("recipedata", recipesData);
+      for (let recipe of recipesData) {
+        console.log("recipe", recipe)
+        const { data: username, error: UserError } = await supabase.from('profiles').select('username').eq('id', recipe.user_id);
+        //console.error(UserError);
+        console.log(username[0].username);
+        recipe.username = username[0].username
+      }
       setRecipes(recipesData);
+      console.log("changed recipes", recipes)
       setLoading(false);
     }
     loadRecipes();
@@ -277,11 +285,11 @@ export default function FeedScreen({ navigation }) {
                     <View style={styles.recipeAuthorRow}>
                       <View style={styles.authorAvatar}>
                         <ThemedText style={styles.avatarText}>
-                          {recipe.author.username.charAt(0).toUpperCase()}
+                          {recipe.username.charAt(0).toUpperCase()}
                         </ThemedText>
                       </View>
                       <ThemedText style={styles.authorName} lightColor="#000" darkColor="#000">
-                        {recipe.author.username}
+                        {recipe.username}
                       </ThemedText>
                     </View>
                   </View>

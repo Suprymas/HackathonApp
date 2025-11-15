@@ -21,32 +21,26 @@ export default function RecipeDetailScreen(props) {
   const [error, setError] = useState(null);
   const [story, setStory] = useState('');
   const [cookDetails, setCookDetails] = useState('');
+  const [ingredientsList, setIngredienList] = useState([]);
+  const [stepsList, setStepsList] = useState([]);
 
   console.log(id);
   useEffect(() => {
     const getRecipe = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { data: recipeData, error: recipeError } = await supabase
-        .from('recipes')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', parseInt(user.id));
-      console.error(recipeError);
-      console.log("recipedata", recipeData);
+      const { data: recipeData, error: recipeError } = await supabase.rpc("get_recipe", { p_recipe_id: id })
+      console.log('recipeIngredients', recipeData.ingredients)
+      setIngredienList(recipeData.ingredients);
+      setStepsList(recipeData.steps);
+      setRecipe(recipeData.recipe);
+      setLoading(false)
+      console.log("current", recipe)
     }
     getRecipe();
 
   }, [id])
 
   // Parse ingredients into array - support both newline and comma separators
-  /*
-  const ingredientsList = recipe.ingredients
-    ? recipe.ingredients
-      .split(/\n|,/)
-      .map(item => item.trim())
-      .filter(item => item.length > 0)
-    : [];
-  */
 
   // Parse instructions into steps
   //const stepsList = recipe.instructions?.split('\n').filter(step => step.trim()) || [];
@@ -110,9 +104,9 @@ export default function RecipeDetailScreen(props) {
       >
         {/* Main Recipe Image */}
         <View style={styles.imageContainer}>
-          {recipe.image_url ? (
+          {recipe.main_image_url ? (
             <Image
-              source={{ uri: recipe.image_url }}
+              source={{ uri: recipe.main_image_url }}
               style={styles.mainImage}
               resizeMode="cover"
             />
@@ -151,19 +145,17 @@ export default function RecipeDetailScreen(props) {
             <ThemedText style={styles.sectionLabel}>Ingredients</ThemedText>
             {ingredientsList.length > 0 ? (
               <View style={styles.ingredientsContainer}>
-                {ingredientsList.map((ingredient, index) => {
-                  const parts = ingredient.split(':');
-                  const name = parts[0]?.trim() || ingredient;
-                  const amount = parts[1]?.trim() || '';
-                  const isLast = index === ingredientsList.length - 1;
+                {ingredientsList.map((ingredient) => {
+                  //add amount 
+                  let amount = 0;
                   return (
-                    <View key={`ingredient-${index}`}>
+                    <View key={`ingredient-${ingredient.order_index}`}>
                       <View style={styles.ingredientRow}>
                         <ThemedText style={styles.ingredientText}>
-                          {`${name}${amount ? `: ${amount}` : ''}`}
+                          {`${ingredient.ingredient}${amount ? `: ${amount}` : ''}`}
                         </ThemedText>
                       </View>
-                      {!isLast && <View style={styles.ingredientSeparator} />}
+                      {!(ingredient.order_index != ingredientsList.length - 1) && <View style={styles.ingredientSeparator} />}
                     </View>
                   );
                 })}
