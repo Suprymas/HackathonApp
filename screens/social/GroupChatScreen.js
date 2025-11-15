@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../services/Supabase';
+import { supabase } from '../../services/Supabase';
 
 export default function GroupChatScreen({ route, navigation }) {
   const { 

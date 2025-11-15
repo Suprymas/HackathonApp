@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, TouchableOpacity, View, Alert, Modal } from 'react-native';
-import { ThemedText } from '../components/ThemedText';
-import { supabase } from '../services/Supabase';
+import { ThemedText } from '../../components/ThemedText';
+import { supabase } from '../../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native'
 

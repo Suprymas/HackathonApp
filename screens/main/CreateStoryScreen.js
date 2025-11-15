@@ -12,8 +12,8 @@ import {
   Text,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { ThemedText } from '../components/ThemedText';
-import { supabase, uploadImage } from '../services/Supabase';
+import { ThemedText } from '../../components/ThemedText';
+import { supabase, uploadImage } from '../../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
 
 const CORAL = '#FF6B6B'; // Coral color from design
@@ -218,7 +218,7 @@ export default function CreateStoryScreen({ navigation }) {
         // Initial State - Background image with phone illustration and buttons
         <View style={styles.backgroundContainer}>
           <ImageBackground
-            source={require('../assets/icon.png')}
+            source={require('../../assets/icon.png')}
             style={styles.backgroundImage}
             blurRadius={15}
             imageStyle={styles.backgroundImageStyle}

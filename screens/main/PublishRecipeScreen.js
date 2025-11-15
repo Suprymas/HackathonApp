@@ -11,8 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { ThemedText } from '../components/ThemedText';
-import { supabase, uploadImage } from '../services/Supabase';
+import { ThemedText } from '../../components/ThemedText';
+import { supabase, uploadImage } from '../../services/Supabase';
 import { useNavigation } from '@react-navigation/native';
 
 export default function PublishRecipeScreen() {

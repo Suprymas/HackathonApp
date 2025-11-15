@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Dimensions } from 'react-native';
-import { ThemedText } from '../components/ThemedText';
+import { ThemedText } from '../../components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
-import { supabase } from '../services/Supabase';
+import { supabase } from '../../services/Supabase';
 import { useFocusEffect } from '@react-navigation/native';
 
 

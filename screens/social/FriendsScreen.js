@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Text, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { supabase } from '../services/Supabase';
+import { supabase } from '../../services/Supabase';
 
 export default function FriendsScreen() {
   const navigation = useNavigation();

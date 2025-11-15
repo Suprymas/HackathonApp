@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { supabase } from '../services/Supabase';
+import { supabase } from '../../services/Supabase';
 
 export default function SignUpScreen({ navigation }) {
   const [email, setEmail] = useState('');

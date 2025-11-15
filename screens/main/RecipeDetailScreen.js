@@ -1,4 +1,4 @@
-import { ThemedText } from '../components/ThemedText';
+import { ThemedText } from '../../components/ThemedText';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Image,
@@ -9,7 +9,7 @@ import {
   Text,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { supabase } from '../services/Supabase';
+import { supabase } from '../../services/Supabase';
 
 export default function RecipeDetailScreen(props) {
   const navigation = useNavigation();

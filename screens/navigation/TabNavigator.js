@@ -4,10 +4,10 @@ import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 // Import your screen components
-import HomeScreen from './HomeScreen';
-import PublishRecipeScreen from './PublishRecipeScreen';
-import FriendsScreen from './FriendsScreen';
-import ProfileScreen from './ProfileScreen';
+import HomeScreen from '../main/HomeScreen';
+import PublishRecipeScreen from '../main/PublishRecipeScreen';
+import FriendsScreen from '../social/FriendsScreen';
+import ProfileScreen from '../main/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 

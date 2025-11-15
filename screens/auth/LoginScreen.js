@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { supabase } from '../services/Supabase';
+import { supabase } from '../../services/Supabase';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');

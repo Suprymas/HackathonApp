@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { ThemedText } from '../components/ThemedText';
+import { ThemedText } from '../../components/ThemedText';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 

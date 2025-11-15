@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View, TextInput, Image, Alert } from 'react-native';
-import { ThemedText } from '../components/ThemedText';
-import { supabase } from '../services/Supabase';
+import * as ImagePicker from 'expo-image-picker';
+import { ThemedText } from '../../components/ThemedText';
+import { supabase, uploadImage } from '../../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -12,6 +13,8 @@ export default function ProfileSettingsScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [avatarUri, setAvatarUri] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     loadUserProfile();
@@ -38,6 +41,9 @@ export default function ProfileSettingsScreen({ navigation }) {
           setUser(profileData);
           setUsername(profileData.username || '');
           setBio(profileData.bio || '');
+          if (profileData.avatar_url) {
+            setAvatarUri(profileData.avatar_url);
+          }
         }
       }
     } catch (error) {
@@ -46,6 +52,91 @@ export default function ProfileSettingsScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const requestPermissions = async () => {
+    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
+      Alert.alert(
+        'Permission Required',
+        'Camera and photo library permissions are required to upload images',
+        [{ text: 'OK' }]
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const handleImagePicker = async (source) => {
+    console.log('handleImagePicker called with source:', source);
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) {
+      console.log('Permissions not granted');
+      return;
+    }
+
+    try {
+      let result;
+      if (source === 'camera') {
+        console.log('Launching camera...');
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      } else {
+        console.log('Launching image library...');
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      }
+
+      console.log('Image picker result:', result);
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        console.log('Image selected:', result.assets[0].uri);
+        setAvatarUri(result.assets[0].uri);
+      } else {
+        console.log('Image selection canceled');
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+      Alert.alert('Error', `Error selecting image: ${error.message}`);
+    }
+  };
+
+  const handleChangeAvatar = () => {
+    console.log('handleChangeAvatar called');
+    Alert.alert(
+      'Change Avatar',
+      'Choose an option',
+      [
+        {
+          text: 'Take Photo',
+          onPress: () => {
+            console.log('Take Photo selected');
+            handleImagePicker('camera');
+          },
+        },
+        {
+          text: 'Choose from Library',
+          onPress: () => {
+            console.log('Choose from Library selected');
+            handleImagePicker('library');
+          },
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleSave = async () => {
@@ -63,12 +154,30 @@ export default function ProfileSettingsScreen({ navigation }) {
         return;
       }
 
+      let avatarUrl = user?.avatar_url || null;
+
+      // Upload new avatar if a local URI is set and it's different from the current one
+      if (avatarUri && avatarUri !== user?.avatar_url && !avatarUri.startsWith('http')) {
+        setUploadingAvatar(true);
+        try {
+          avatarUrl = await uploadImage(avatarUri, 'avatars', authUser.id);
+        } catch (uploadError) {
+          console.error('Error uploading avatar:', uploadError);
+          Alert.alert('Error', 'Failed to upload avatar image');
+          setUploadingAvatar(false);
+          setSaving(false);
+          return;
+        }
+        setUploadingAvatar(false);
+      }
+
       // Update profile
       const { error } = await supabase
         .from('profiles')
         .update({
           username: username.trim(),
           bio: bio.trim(),
+          avatar_url: avatarUrl,
           updated_at: new Date().toISOString(),
         })
         .eq('id', authUser.id);
@@ -83,6 +192,7 @@ export default function ProfileSettingsScreen({ navigation }) {
       Alert.alert('Error', 'Failed to update profile');
     } finally {
       setSaving(false);
+      setUploadingAvatar(false);
     }
   };
 
@@ -132,16 +242,27 @@ export default function ProfileSettingsScreen({ navigation }) {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Avatar Section */}
         <View style={styles.avatarSection}>
-          {user?.avatar_url ? (
-            <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Ionicons name="person" size={50} color="#999" />
-            </View>
-          )}
-          <TouchableOpacity style={styles.changeAvatarButton}>
+          <TouchableOpacity 
+            onPress={handleChangeAvatar}
+            disabled={uploadingAvatar}
+            activeOpacity={0.7}
+          >
+            {avatarUri ? (
+              <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Ionicons name="person" size={50} color="#999" />
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.changeAvatarButton}
+            onPress={handleChangeAvatar}
+            disabled={uploadingAvatar}
+            activeOpacity={0.7}
+          >
             <ThemedText style={styles.changeAvatarText} lightColor="#C97D60" darkColor="#C97D60">
-              Change Avatar
+              {uploadingAvatar ? 'Uploading...' : 'Change Avatar'}
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -195,12 +316,12 @@ export default function ProfileSettingsScreen({ navigation }) {
 
         {/* Save Button */}
         <TouchableOpacity
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+          style={[styles.saveButton, (saving || uploadingAvatar) && styles.saveButtonDisabled]}
           onPress={handleSave}
-          disabled={saving}
+          disabled={saving || uploadingAvatar}
         >
           <ThemedText style={styles.saveButtonText} lightColor="#fff" darkColor="#fff">
-            {saving ? 'Saving...' : 'Save Changes'}
+            {(saving || uploadingAvatar) ? 'Saving...' : 'Save Changes'}
           </ThemedText>
         </TouchableOpacity>
       </ScrollView>
@@ -268,7 +389,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   changeAvatarButton: {
-    padding: 8,
+    padding: 12,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   changeAvatarText: {
     fontSize: 16,
