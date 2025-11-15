@@ -157,22 +157,61 @@ export default function ProfileSettingsScreen({ navigation }) {
       let avatarUrl = user?.avatar_url || null;
 
       // Upload new avatar if a local URI is set and it's different from the current one
+      // Don't block the entire save if avatar upload fails
       if (avatarUri && avatarUri !== user?.avatar_url && !avatarUri.startsWith('http')) {
         setUploadingAvatar(true);
         try {
           avatarUrl = await uploadImage(avatarUri, 'avatars', authUser.id);
+          console.log('Avatar uploaded successfully:', avatarUrl);
         } catch (uploadError) {
           console.error('Error uploading avatar:', uploadError);
-          Alert.alert('Error', 'Failed to upload avatar image');
-          setUploadingAvatar(false);
-          setSaving(false);
-          return;
+          // Don't return - allow saving other data even if avatar fails
+          Alert.alert(
+            'Warning', 
+            'Failed to upload avatar image, but other changes will be saved.',
+            [{ text: 'OK' }]
+          );
+          // Keep the existing avatar_url if upload fails
+          avatarUrl = user?.avatar_url || null;
         }
         setUploadingAvatar(false);
       }
 
-      // Update profile
-      const { error } = await supabase
+      // Check if profile exists, if not create it first
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', authUser.id)
+        .single();
+
+      if (checkError && checkError.code === 'PGRST116') {
+        // Profile doesn't exist, create it first
+        console.log('Profile does not exist, creating new profile...');
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authUser.id,
+            username: username.trim(),
+            bio: bio.trim(),
+            avatar_url: avatarUrl,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          throw insertError;
+        }
+
+        Alert.alert('Success', 'Profile created successfully!', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+        return;
+      }
+
+      // Update existing profile
+      console.log('Updating profile for user:', authUser.id);
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({
           username: username.trim(),
@@ -182,14 +221,28 @@ export default function ProfileSettingsScreen({ navigation }) {
         })
         .eq('id', authUser.id);
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('Error updating profile:', updateError);
+        console.error('Error details:', JSON.stringify(updateError, null, 2));
+        throw updateError;
+      }
 
+      console.log('Profile updated successfully');
       Alert.alert('Success', 'Profile updated successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      console.error('Error updating profile:', error);
-      Alert.alert('Error', 'Failed to update profile');
+      console.error('Error saving profile:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      let errorMessage = 'Failed to update profile';
+      if (error.message) {
+        errorMessage += `: ${error.message}`;
+      } else if (error.code) {
+        errorMessage += ` (${error.code})`;
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setSaving(false);
       setUploadingAvatar(false);
