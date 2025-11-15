@@ -3,6 +3,8 @@ import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Dimensions } fro
 import { ThemedText } from '../components/ThemedText';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../services/Supabase';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding (16px padding on each side + 16px gap)
@@ -94,10 +96,12 @@ const mockRecipes = [
   },
 ];
 
-export default function FeedScreen() {
+export default function FeedScreen({navigation}) {
   const [recipes, setRecipes] = useState(mockRecipes);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [stories, setStories] = useState([]);
+  const [storiesLoading, setStoriesLoading] = useState(false);
 
   const navigator = useNavigation();
 
@@ -155,12 +159,45 @@ export default function FeedScreen() {
   useEffect(() => {
     loadRecipes();
   }, []);
-
+  console.log('stories:', stories);
   console.log(typeof recipes);
   console.log('recipes', recipes);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadStories();
+    }, [])
+  );
+
+  const loadStories = async () => {
+    try {
+      setStoriesLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setStories([]);
+        return;
+      }
+
+      // Load stories from all users (public stories)
+      const { data, error } = await supabase
+        .from('stories')
+        .select(`
+          *
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      setStories(data || []);
+    } catch (error) {
+      console.error('Error loading stories:', error);
+      setStories([]);
+    } finally {
+      setStoriesLoading(false);
+    }
+  };
 
   // Use mock stories for now, will connect to backend later
-  const stories = Array.from({ length: 6 }, (_, i) => ({ id: i }));
 
   return (
     <View style={styles.outerContainer}>
@@ -180,16 +217,32 @@ export default function FeedScreen() {
             style={styles.storiesScroll}
             contentContainerStyle={styles.storiesContent}
           >
+            <TouchableOpacity
+              style={styles.storyCircle}
+              onPress={() => navigation.navigate('CreateStory')}
+              activeOpacity={0.7}
+            >
+              <ThemedText style={styles.addStoryIcon}>+</ThemedText>
+            </TouchableOpacity>
             {stories.map((story, index) => (
               <TouchableOpacity 
                 key={story.id} 
                 style={styles.storyCircle}
+                activeOpacity={0.7}
                 onPress={() => index === 0 ? navigator.navigate('CreateStory') : null}
               >
-                {index === 0 ? (
-                  <ThemedText style={styles.addStoryIcon}>+</ThemedText>
+                {story.image ? (
+                  <Image
+                    source={{ uri: story.image }}
+                    style={styles.storyImage}
+                    resizeMode="cover"
+                  />
                 ) : (
-                  <View style={styles.storyPlaceholder} />
+                  <View style={styles.storyPlaceholder}>
+                    <ThemedText style={styles.storyInitial}>
+                      {story.author?.username?.charAt(0).toUpperCase() || 'U'}
+                    </ThemedText>
+                  </View>
                 )}
               </TouchableOpacity>
             ))}
@@ -455,5 +508,15 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  storyImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+  },
+  storyInitial: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#666',
   },
 });

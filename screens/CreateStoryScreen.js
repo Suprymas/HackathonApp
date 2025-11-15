@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../components/ThemedText';
-import { supabase } from '../services/Supabase';
+import { supabase, uploadImage } from '../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
 
 const CORAL = '#FF6B6B'; // Coral color from design
@@ -27,7 +27,7 @@ export default function CreateStoryScreen({ navigation }) {
   const requestPermissions = async () => {
     const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
     const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
       Alert.alert(
         'Permission Required',
@@ -67,52 +67,6 @@ export default function CreateStoryScreen({ navigation }) {
     }
   };
 
-  const uploadImageToSupabase = async (imageUri) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not logged in');
-
-      // Create a unique filename
-      const timestamp = Date.now();
-      const filename = `stories/${user.id}/${timestamp}.jpg`;
-      
-      // For Supabase, we need to convert to blob
-      // Use XMLHttpRequest to read the file as blob
-      const blob = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = function() {
-          resolve(xhr.response);
-        };
-        xhr.onerror = function() {
-          reject(new Error('Failed to load image'));
-        };
-        xhr.open('GET', imageUri);
-        xhr.responseType = 'blob';
-        xhr.send();
-      });
-
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('food-images') // You may need to adjust this bucket name
-        .upload(filename, blob, {
-          contentType: 'image/jpeg',
-          upsert: false,
-        });
-
-      if (error) throw error;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('food-images')
-        .getPublicUrl(filename);
-
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      throw new Error('Image upload failed. Please check your network connection and storage configuration');
-    }
-  };
-
   const handleCreateStory = async () => {
     if (!storyImageUri) {
       Alert.alert('Notice', 'Please select an image first');
@@ -128,15 +82,19 @@ export default function CreateStoryScreen({ navigation }) {
       }
 
       // Upload image to Supabase Storage
-      const imageUrl = await uploadImageToSupabase(storyImageUri);
+      const imageUrl = await uploadImage(storyImageUri,
+        'story-images', // bucket name
+        `${user.id}`
+      );
 
       // Save story to database
       const { data, error } = await supabase
         .from('stories')
         .insert({
-          user_id: user.id,
-          title: storyContent.trim() || null,
+          title: storyContent.trim() || 'My Food Story',
           image: imageUrl,
+          user_id: user.id,
+          likes: 0,
         })
         .select()
         .single();
@@ -168,7 +126,11 @@ export default function CreateStoryScreen({ navigation }) {
       <View style={styles.headerTop}>
         <ThemedText style={styles.headerTopText}>Create Story</ThemedText>
       </View>
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> 8b139a4cfea303675f3465bb23c4447f4626c4b2
       {/* Header - Coral bar */}
       <View style={styles.header}>
         <ThemedText style={styles.headerTitle}>Create new Story</ThemedText>
@@ -188,7 +150,7 @@ export default function CreateStoryScreen({ navigation }) {
             style={styles.fullScreenImage}
             resizeMode="cover"
           />
-          
+
           {/* Text Input Overlay - Always visible when image is selected */}
           <View style={styles.textInputOverlay}>
             <TextInput
@@ -230,7 +192,7 @@ export default function CreateStoryScreen({ navigation }) {
                 <Ionicons name="images" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
-            
+
             <TouchableOpacity
               style={styles.toolButton}
               onPress={() => {
@@ -241,17 +203,17 @@ export default function CreateStoryScreen({ navigation }) {
             >
               <Ionicons name="people" size={24} color="#fff" />
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={styles.toolButton}
               onPress={handleCreateStory}
               disabled={creatingStory}
               activeOpacity={0.7}
             >
-              <Ionicons 
-                name={creatingStory ? "hourglass" : "arrow-forward"} 
-                size={24} 
-                color="#fff" 
+              <Ionicons
+                name={creatingStory ? "hourglass" : "arrow-forward"}
+                size={24}
+                color="#fff"
               />
             </TouchableOpacity>
           </View>
