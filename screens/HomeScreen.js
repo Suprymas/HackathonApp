@@ -95,7 +95,7 @@ const mockRecipes = [
 ];
 export default function FeedScreen({ navigation }) {
   const [recipes, setRecipes] = useState(mockRecipes);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stories, setStories] = useState([]);
   const [storiesLoading, setStoriesLoading] = useState(false);
@@ -103,9 +103,31 @@ export default function FeedScreen({ navigation }) {
   useEffect(() => {
     loadStories();
     // Uncomment to load from API
-    // loadRecipes();
+    const loadRecipes = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: recipesData, error: recipesError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('user_id', user.id);
+      //console.error(recipesError);
+      console.log("recipedata", recipesData);
+      for (let recipe of recipesData) {
+        console.log("recipe", recipe)
+        const { data: username, error: UserError } = await supabase.from('profiles').select('username').eq('id', recipe.user_id);
+        //console.error(UserError);
+        console.log(username[0].username);
+        recipe.username = username[0].username
+      }
+      setRecipes(recipesData);
+      console.log("changed recipes", recipes)
+      setLoading(false);
+    }
+    loadRecipes();
+
   }, []);
   const navigator = useNavigation();
+  console.log(typeof (recipes))
+  console.log("recipes", recipes)
 
   // Reload stories when screen comes into focus
   useFocusEffect(
@@ -263,11 +285,11 @@ export default function FeedScreen({ navigation }) {
                     <View style={styles.recipeAuthorRow}>
                       <View style={styles.authorAvatar}>
                         <ThemedText style={styles.avatarText}>
-                          {recipe.author.username.charAt(0).toUpperCase()}
+                          {recipe.username.charAt(0).toUpperCase()}
                         </ThemedText>
                       </View>
                       <ThemedText style={styles.authorName} lightColor="#000" darkColor="#000">
-                        {recipe.author.username}
+                        {recipe.username}
                       </ThemedText>
                     </View>
                   </View>
