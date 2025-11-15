@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#363636',
   },
   header: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 16,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   searchButton: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   addButton: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     borderRadius: 20,
     width: 40,
     height: 40,

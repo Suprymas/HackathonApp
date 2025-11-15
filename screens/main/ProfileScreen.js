@@ -295,8 +295,8 @@ export default function ProfileScreen() {
               >
                 <ThemedText
                   style={[styles.tabText, activeTab === 'recipes' && styles.tabTextActive]}
-                  lightColor={activeTab === 'recipes' ? '#C97D60' : '#666'}
-                  darkColor={activeTab === 'recipes' ? '#C97D60' : '#999'}
+                  lightColor={activeTab === 'recipes' ? '#CC684F' : '#666'}
+                  darkColor={activeTab === 'recipes' ? '#CC684F' : '#999'}
                 >
                   Your Recipe
                 </ThemedText>
@@ -308,8 +308,8 @@ export default function ProfileScreen() {
               >
                 <ThemedText
                   style={[styles.tabText, activeTab === 'stories' && styles.tabTextActive]}
-                  lightColor={activeTab === 'stories' ? '#C97D60' : '#666'}
-                  darkColor={activeTab === 'stories' ? '#C97D60' : '#999'}
+                  lightColor={activeTab === 'stories' ? '#CC684F' : '#666'}
+                  darkColor={activeTab === 'stories' ? '#CC684F' : '#999'}
                 >
                   Your Stories
                 </ThemedText>
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#363636',
   },
   header: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 16,
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
   },
   contentGrid: {
     flexDirection: 'row',
@@ -846,7 +846,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,

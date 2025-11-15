@@ -314,7 +314,7 @@ export default function ProfileSettingsScreen({ navigation }) {
             disabled={uploadingAvatar}
             activeOpacity={0.7}
           >
-            <ThemedText style={styles.changeAvatarText} lightColor="#C97D60" darkColor="#C97D60">
+            <ThemedText style={styles.changeAvatarText} lightColor="#CC684F" darkColor="#CC684F">
               {uploadingAvatar ? 'Uploading...' : 'Change Avatar'}
             </ThemedText>
           </TouchableOpacity>
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#363636',
   },
   header: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 16,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   changeAvatarText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#C97D60',
+    color: '#CC684F',
   },
   inputSection: {
     marginBottom: 24,
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveButton: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

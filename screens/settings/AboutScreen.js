@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#363636',
   },
   header: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 16,

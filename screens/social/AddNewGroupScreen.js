@@ -410,7 +410,7 @@ export default function AddNewGroupScreen({ navigation }) {
                 </Text>
                 <View style={styles.checkboxContainer}>
                   {selectedFriends.has(friend.id) ? (
-                    <Ionicons name="checkbox" size={24} color="#C97D60" />
+                    <Ionicons name="checkbox" size={24} color="#CC684F" />
                   ) : (
                     <View style={styles.checkboxEmpty} />
                   )}
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#363636',
   },
   header: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 16,
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   createButton: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

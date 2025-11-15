@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#363636',
   },
   header: {
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 16,
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   settingsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#C97D60',
+    backgroundColor: '#CC684F',
     borderRadius: 12,
     padding: 16,
   },

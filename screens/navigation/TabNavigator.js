@@ -13,16 +13,16 @@ const Tab = createBottomTabNavigator();
 
 const Colors = {
   light: {
-    tint: '#007AFF',
+    tint: '#CC684F',
     background: '#fff',
     text: '#000',
-    tabBar: '#f8f8f8',
+    tabBar: '#CC684F',
   },
   dark: {
-    tint: '#0A84FF',
+    tint: '#CC684F',
     background: '#000',
     text: '#fff',
-    tabBar: '#1c1c1c',
+    tabBar: '#CC684F',
   },
 };
 

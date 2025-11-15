@@ -255,10 +255,9 @@ export default function FriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Orange header with Social and user avatar */}
+      {/* Orange header with Social */}
       <View style={styles.orangeBar}>
         <Text style={styles.messagesText}>Social</Text>
-        <Image source={{ uri: userAvatar }} style={styles.userAvatar} />
       </View>
 
       {/* Tab Navigation */}
@@ -330,7 +329,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#CC684F', // Orange color
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
@@ -338,13 +336,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  userAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#fff',
   },
   tabContainer: {
     flexDirection: 'row',
