@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet, TouchableOpacity, View, Alert } from 'react-native';
+import { Dimensions, Image, ScrollView, StyleSheet, TouchableOpacity, View, Alert, Modal } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { supabase } from '../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,12 @@ export default function ProfileScreen() {
   const [recipesLoading, setRecipesLoading] = useState(true);
   const [storiesLoading, setStoriesLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [friendsCount, setFriendsCount] = useState(0);
+  const [groupsCount, setGroupsCount] = useState(0);
+  const [friends, setFriends] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [showListModal, setShowListModal] = useState(false);
+  const [listType, setListType] = useState(null); // 'friends' or 'groups'
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -46,6 +52,7 @@ export default function ProfileScreen() {
         setUser(profileData);
         loadRecipes(authUser.id);
         loadStories(authUser.id);
+        loadFriendsAndGroupsCount(authUser.id);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -101,6 +108,67 @@ export default function ProfileScreen() {
     } finally {
       setStoriesLoading(false);
     }
+  };
+
+  const loadFriendsAndGroupsCount = async (userId) => {
+    try {
+      // Mock data - using same structure as FriendsScreen
+      // In a real app, you would fetch from Supabase
+      const mockFriends = [
+        {
+          id: 1,
+          name: 'lukas',
+          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
+        },
+        {
+          id: 2,
+          name: 'Justas',
+          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
+        },
+        {
+          id: 3,
+          name: 'Siebe',
+          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
+        },
+        {
+          id: 4,
+          name: 'Guda',
+          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
+        },
+      ];
+
+      const mockGroups = [
+        {
+          id: 1,
+          name: 'Room 3A',
+          icon: 'restaurant',
+        },
+        {
+          id: 2,
+          name: 'Foodly',
+          icon: 'restaurant-outline',
+        },
+      ];
+
+      setFriends(mockFriends);
+      setGroups(mockGroups);
+      setFriendsCount(mockFriends.length);
+      setGroupsCount(mockGroups.length);
+    } catch (error) {
+      console.error('Error loading friends and groups count:', error);
+      setFriendsCount(0);
+      setGroupsCount(0);
+    }
+  };
+
+  const handleShowList = (type) => {
+    setListType(type);
+    setShowListModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowListModal(false);
+    setListType(null);
   };
 
   const handleLogout = async () => {
@@ -196,6 +264,25 @@ export default function ProfileScreen() {
                   ) : (
                     <Ionicons name="person" size={50} color="#999" />
                   )}
+                </View>
+                {/* Friends and Groups Count */}
+                <View style={styles.friendsGroupsContainer}>
+                  <TouchableOpacity 
+                    style={styles.friendsGroupsItem}
+                    onPress={() => handleShowList('friends')}
+                  >
+                    <ThemedText style={styles.friendsGroupsText} lightColor="#999" darkColor="#999">
+                      Friends: {friendsCount}
+                    </ThemedText>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.friendsGroupsItem}
+                    onPress={() => handleShowList('groups')}
+                  >
+                    <ThemedText style={styles.friendsGroupsText} lightColor="#999" darkColor="#999">
+                      Groups: {groupsCount}
+                    </ThemedText>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -352,6 +439,102 @@ export default function ProfileScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Friends/Groups List Modal */}
+      <Modal
+        visible={showListModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleCloseModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <ThemedText style={styles.modalTitle} lightColor="#fff" darkColor="#fff">
+                {listType === 'friends' ? 'Friends' : 'Groups'}
+              </ThemedText>
+              <TouchableOpacity onPress={handleCloseModal} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {/* List Content */}
+            <ScrollView 
+              style={styles.modalList}
+              contentContainerStyle={styles.modalListContent}
+            >
+              {listType === 'friends' ? (
+                friends.length === 0 ? (
+                  <View style={styles.emptyListContainer}>
+                    <ThemedText style={styles.emptyListText} lightColor="#999" darkColor="#999">
+                      No friends yet
+                    </ThemedText>
+                  </View>
+                ) : (
+                  friends.map((friend) => (
+                    <TouchableOpacity
+                      key={friend.id}
+                      style={styles.listItem}
+                      onPress={() => {
+                        handleCloseModal();
+                        navigation.navigate('GroupChat', {
+                          friendId: friend.id,
+                          friendName: friend.name,
+                          friendAvatar: friend.avatar,
+                          isDirectChat: true,
+                        });
+                      }}
+                    >
+                      <Image 
+                        source={{ uri: friend.avatar }} 
+                        style={styles.listItemAvatar} 
+                      />
+                      <ThemedText style={styles.listItemName} lightColor="#fff" darkColor="#fff">
+                        {friend.name}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  ))
+                )
+              ) : (
+                groups.length === 0 ? (
+                  <View style={styles.emptyListContainer}>
+                    <ThemedText style={styles.emptyListText} lightColor="#999" darkColor="#999">
+                      No groups yet
+                    </ThemedText>
+                  </View>
+                ) : (
+                  groups.map((group) => (
+                    <TouchableOpacity
+                      key={group.id}
+                      style={styles.listItem}
+                      onPress={() => {
+                        handleCloseModal();
+                        navigation.navigate('GroupChat', {
+                          groupId: group.id,
+                          groupName: group.name,
+                          groupIcon: group.icon,
+                        });
+                      }}
+                    >
+                      <View style={styles.groupIconContainer}>
+                        <Ionicons 
+                          name={group.icon} 
+                          size={24} 
+                          color="#fff" 
+                        />
+                      </View>
+                      <ThemedText style={styles.listItemName} lightColor="#fff" darkColor="#fff">
+                        {group.name}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  ))
+                )
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -436,20 +619,36 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     width: 120,
-    height: 120,
+    alignItems: 'center',
   },
   avatarPlaceholder: {
-    width: '100%',
-    height: '100%',
+    width: 120,
+    height: 120,
     backgroundColor: '#E0E0E0',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#5A9FD4',
   },
   avatarImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 12,
+    borderRadius: 10,
+  },
+  friendsGroupsContainer: {
+    marginTop: 12,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  friendsGroupsItem: {
+    flex: 1,
+  },
+  friendsGroupsText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
   loadingContainer: {
     flex: 1,
@@ -590,6 +789,78 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#363636',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '80%',
+    flexDirection: 'column',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#555',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalList: {
+    flex: 1,
+  },
+  modalListContent: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#555',
+  },
+  listItemAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+  groupIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#C97D60',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  listItemName: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#fff',
+  },
+  emptyListContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyListText: {
     fontSize: 16,
     color: '#999',
     textAlign: 'center',
