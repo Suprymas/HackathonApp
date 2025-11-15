@@ -32,7 +32,7 @@ export default function FriendsScreen() {
           id: 1,
           name: 'Room 3A',
           icon: 'restaurant',
-          isHighlighted: true,
+          isHighlighted: false,
           posts: [
             { id: 1, title: 'Pizza', date: '14.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop' },
             { id: 2, title: 'Toast', date: '13.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=200&h=200&fit=crop' },
@@ -57,14 +57,14 @@ export default function FriendsScreen() {
         {
           id: 1,
           type: 'like',
-          user: { name: 'Mengmeng', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop' },
+          user: { name: 'Mengmeng', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
           message: 'Mengmeng liked your story',
           thumbnail: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=100&h=100&fit=crop'
         },
         {
           id: 2,
           type: 'comment',
-          user: { name: 'Mengmeng', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop' },
+          user: { name: 'Mengmeng', avatar: 'https://i.pinimg.com/1200x/55/52/09/55520979a3c00a33bf50fe9c3db3e796.jpg' },
           message: 'Mengmeng add a comment to your recipe',
           thumbnail: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop'
         }
