@@ -2,11 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Dimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '../components/ThemedText';
-<<<<<<< HEAD
-import { supabase } from '../services/Supabase';
-=======
 import { useNavigation } from '@react-navigation/native';
->>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
+import { supabase } from '../services/Supabase';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding (16px padding on each side + 16px gap)
@@ -144,6 +141,21 @@ export default function FeedScreen({ navigation }) {
       setStories([]);
     } finally {
       setStoriesLoading(false);
+    }
+  };
+
+  const loadRecipes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // TODO: Implement recipe loading from API
+      // For now, using mockRecipes
+      setRecipes(mockRecipes);
+    } catch (error) {
+      console.error('Error loading recipes:', error);
+      setError('Failed to load recipes');
+    } finally {
+      setLoading(false);
     }
   };
 

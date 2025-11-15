@@ -55,91 +55,15 @@ export default function PublishRecipeScreen() {
   };
 
   const requestPermissions = async () => {
-<<<<<<< HEAD
-    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-    const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
-      Alert.alert(
-        '权限需要',
-        '需要相机和相册权限才能上传图片',
-        [{ text: '确定' }]
-      );
-=======
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please allow access to your photos to upload images.');
->>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
+
       return false;
     }
     return true;
   };
 
-<<<<<<< HEAD
-  const handleImagePicker = async (type = 'main', stepId = null) => {
-    const hasPermission = await requestPermissions();
-    if (!hasPermission) return;
-
-    Alert.alert(
-      '选择图片',
-      '请选择图片来源',
-      [
-        {
-          text: '取消',
-          style: 'cancel',
-        },
-        {
-          text: '从相册选择',
-          onPress: async () => {
-            try {
-              const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: type === 'main' ? [16, 9] : [4, 3],
-                quality: 0.8,
-              });
-
-              if (!result.canceled && result.assets && result.assets.length > 0) {
-                const imageUri = result.assets[0].uri;
-                if (type === 'main') {
-                  setMainImageUri(imageUri);
-                } else if (stepId) {
-                  handleStepImageChange(stepId, imageUri);
-                }
-              }
-            } catch (error) {
-              Alert.alert('错误', '选择图片时出错');
-            }
-          },
-        },
-        {
-          text: '使用相机',
-          onPress: async () => {
-            try {
-              const result = await ImagePicker.launchCameraAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: type === 'main' ? [16, 9] : [4, 3],
-                quality: 0.8,
-              });
-
-              if (!result.canceled && result.assets && result.assets.length > 0) {
-                const imageUri = result.assets[0].uri;
-                if (type === 'main') {
-                  setMainImageUri(imageUri);
-                } else if (stepId) {
-                  handleStepImageChange(stepId, imageUri);
-                }
-              }
-            } catch (error) {
-              Alert.alert('错误', '拍照时出错');
-            }
-          },
-        },
-      ],
-      { cancelable: true }
-    );
-=======
   const pickMainImage = async () => {
     const hasPermission = await requestPermissions();
     if (!hasPermission) return;
@@ -180,8 +104,7 @@ export default function PublishRecipeScreen() {
       console.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image');
     }
->>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
-  };
+
 
   const handlePost = async () => {
     // Validate required fields
@@ -341,11 +264,7 @@ export default function PublishRecipeScreen() {
         {/* Main Image Upload Area */}
         <TouchableOpacity
           style={styles.mainImageContainer}
-<<<<<<< HEAD
-          onPress={() => handleImagePicker('main')}
-=======
           onPress={pickMainImage}
->>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
           activeOpacity={0.8}
         >
           {mainImageUri ? (
@@ -416,11 +335,7 @@ export default function PublishRecipeScreen() {
               <ThemedText style={styles.stepLabel}>{index + 1}. step</ThemedText>
               <TouchableOpacity
                 style={styles.stepImageContainer}
-<<<<<<< HEAD
-                onPress={() => handleImagePicker('step', step.id)}
-=======
                 onPress={() => pickStepImage(step.id)}
->>>>>>> d80fb109ef1705fc180a589a7f60c4b4fd9bdaf3
                 activeOpacity={0.8}
               >
                 {step.imageUri ? (
