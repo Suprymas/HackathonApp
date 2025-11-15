@@ -131,12 +131,11 @@ export default function CreateStoryScreen({ navigation }) {
 
       // Save story to database
       const { data, error } = await supabase
-        .from('food_statuses')
+        .from('stories')
         .insert({
-          author_id: user.id,
-          title: null,
-          content: storyContent.trim() || null,
-          image_url: imageUrl,
+          user_id: user.id,
+          title: storyContent.trim() || null,
+          image: imageUrl,
         })
         .select()
         .single();

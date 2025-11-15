@@ -82,12 +82,12 @@ export default function ProfileScreen() {
       setStoriesLoading(true);
 
       const { data, error } = await supabase
-        .from('food_statuses')
+        .from('stories')
         .select(`
           *,
-          author:author_id(id, username)
+          author:user_id(id, username)
         `)
-        .eq('author_id', userId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -309,9 +309,9 @@ export default function ProfileScreen() {
                       style={styles.recipeCard}
                       activeOpacity={0.7}
                     >
-                      {story.image_url ? (
+                      {story.image ? (
                         <Image
-                          source={{ uri: story.image_url }}
+                          source={{ uri: story.image }}
                           style={styles.recipeImage}
                           resizeMode="cover"
                         />
@@ -322,7 +322,7 @@ export default function ProfileScreen() {
                       )}
                       <View style={styles.recipeCardContent}>
                         <ThemedText style={styles.storyContent} numberOfLines={2} lightColor="#000" darkColor="#000">
-                          {story.content}
+                          {story.title || ''}
                         </ThemedText>
                         <View style={styles.divider} />
                         <View style={styles.recipeAuthorRow}>

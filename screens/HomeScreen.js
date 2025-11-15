@@ -147,10 +147,10 @@ export default function FeedScreen({ navigation }) {
 
       // Load stories from all users (public stories)
       const { data, error } = await supabase
-        .from('food_statuses')
+        .from('stories')
         .select(`
           *,
-          author:author_id(id, username)
+          author:user_id(id, username)
         `)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -216,9 +216,9 @@ export default function FeedScreen({ navigation }) {
                 style={styles.storyCircle}
                 activeOpacity={0.7}
               >
-                {story.image_url ? (
+                {story.image ? (
                   <Image
-                    source={{ uri: story.image_url }}
+                    source={{ uri: story.image }}
                     style={styles.storyImage}
                     resizeMode="cover"
                   />
