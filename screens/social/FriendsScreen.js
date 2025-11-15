@@ -9,7 +9,7 @@ export default function FriendsScreen() {
   const [activeTab, setActiveTab] = useState('groups'); // 'groups', 'friends', or 'feed'
   const [groups, setGroups] = useState([]);
   const [friends, setFriends] = useState([]);
-  const [feedPosts, setFeedPosts] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -94,31 +94,33 @@ export default function FriendsScreen() {
         }
       ];
 
-      // Mock data for feed - replace with actual data fetching
-      const mockFeedPosts = [
+      // Mock data for notifications - replace with actual data fetching
+      const mockNotifications = [
         {
           id: 1,
-          author: { name: 'Siebe', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
-          image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=400&fit=crop',
-          title: 'Delicious Pizza',
-          likes: 24,
-          comments: 5,
+          author: { name: 'Mengmeng', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
+          type: 'comment', // 'like' or 'comment'
+          targetType: 'recipe', // 'recipe' or 'story'
+          targetId: 'recipe-1', // ID of the recipe or story
+          message: 'add a comment to your recipe',
+          targetImage: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop',
           timestamp: '2 hours ago'
         },
         {
           id: 2,
-          author: { name: 'Guda', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
-          image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&h=400&fit=crop',
-          title: 'Avocado Toast',
-          likes: 18,
-          comments: 3,
+          author: { name: 'Mengmeng', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
+          type: 'like',
+          targetType: 'story',
+          targetId: 'story-1', // ID of the recipe or story
+          message: 'liked your story',
+          targetImage: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=200&h=200&fit=crop',
           timestamp: '5 hours ago'
         }
       ];
 
       setGroups(mockGroups);
       setFriends(mockFriends);
-      setFeedPosts(mockFeedPosts);
+      setNotifications(mockNotifications);
 
     } catch (error) {
       console.error('Error loading data:', error);
@@ -209,37 +211,43 @@ export default function FriendsScreen() {
   };
 
   const renderFeedTab = () => {
-    const filteredPosts = feedPosts.filter(post => 
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.author.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredNotifications = notifications.filter(notification => 
+      notification.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      notification.message.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
       <ScrollView style={styles.contentScroll}>
-        {filteredPosts.map((post) => (
-          <View key={post.id} style={styles.feedPostCard}>
-            <View style={styles.feedPostHeader}>
-              <Image source={{ uri: post.author.avatar }} style={styles.feedPostAvatar} />
-              <View style={styles.feedPostAuthorInfo}>
-                <Text style={styles.feedPostAuthorName}>{post.author.name}</Text>
-                <Text style={styles.feedPostTimestamp}>{post.timestamp}</Text>
-              </View>
+        {filteredNotifications.map((notification) => (
+          <TouchableOpacity
+            key={notification.id}
+            style={styles.notificationCard}
+            onPress={() => {
+              // Navigate to recipe or story detail based on targetType
+              if (notification.targetType === 'recipe') {
+                navigation.navigate('RecipeDetail', { recipeId: notification.targetId });
+              } else if (notification.targetType === 'story') {
+                // Navigate to story detail if needed
+                console.log('Navigate to story:', notification.targetId);
+              }
+            }}
+          >
+            <Image 
+              source={{ uri: notification.author.avatar }} 
+              style={styles.notificationAvatar} 
+            />
+            <View style={styles.notificationContent}>
+              <Text style={styles.notificationText}>
+                <Text style={styles.notificationAuthorName}>{notification.author.name}</Text>
+                {' '}
+                <Text style={styles.notificationMessage}>{notification.message}</Text>
+              </Text>
             </View>
-            <Image source={{ uri: post.image }} style={styles.feedPostImage} />
-            <View style={styles.feedPostFooter}>
-              <Text style={styles.feedPostTitle}>{post.title}</Text>
-              <View style={styles.feedPostStats}>
-                <View style={styles.feedPostStat}>
-                  <Ionicons name="heart" size={16} color="#666" />
-                  <Text style={styles.feedPostStatText}>{post.likes}</Text>
-                </View>
-                <View style={styles.feedPostStat}>
-                  <Ionicons name="chatbubble" size={16} color="#666" />
-                  <Text style={styles.feedPostStatText}>{post.comments}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
+            <Image 
+              source={{ uri: notification.targetImage }} 
+              style={styles.notificationThumbnail} 
+            />
+          </TouchableOpacity>
         ))}
       </ScrollView>
     );
@@ -247,9 +255,9 @@ export default function FriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Orange header with Messages and user avatar */}
+      {/* Orange header with Social and user avatar */}
       <View style={styles.orangeBar}>
-        <Text style={styles.messagesText}>Messages</Text>
+        <Text style={styles.messagesText}>Social</Text>
         <Image source={{ uri: userAvatar }} style={styles.userAvatar} />
       </View>
 
@@ -498,66 +506,45 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
-  feedPostCard: {
-    backgroundColor: '#fff',
+  notificationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
     marginHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 12,
+    padding: 12,
     borderRadius: 12,
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#e5e5e5',
   },
-  feedPostHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-  },
-  feedPostAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  notificationAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     marginRight: 12,
   },
-  feedPostAuthorInfo: {
+  notificationContent: {
     flex: 1,
   },
-  feedPostAuthorName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  feedPostTimestamp: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
-  },
-  feedPostImage: {
-    width: '100%',
-    height: 300,
-    resizeMode: 'cover',
-  },
-  feedPostFooter: {
-    padding: 12,
-  },
-  feedPostTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  feedPostStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  feedPostStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  feedPostStatText: {
+  notificationText: {
     fontSize: 14,
     color: '#666',
-    marginLeft: 4,
+    lineHeight: 20,
+  },
+  notificationAuthorName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: '#666',
+  },
+  notificationThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginLeft: 8,
   },
   loadingContainer: {
     flex: 1,
