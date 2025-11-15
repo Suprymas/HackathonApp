@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '../components/ThemedText';
 
 export default function PublishRecipeScreen() {
@@ -52,9 +53,55 @@ export default function PublishRecipeScreen() {
     setPreparationSteps(newSteps);
   };
 
-  const handleImagePicker = () => {
-    // Placeholder for image picker - in a real app, you would use expo-image-picker
-    Alert.alert('Image Picker', 'Image picker functionality will be implemented here');
+  const requestPermissions = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your photos to upload images.');
+      return false;
+    }
+    return true;
+  };
+
+  const pickMainImage = async () => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setMainImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const pickStepImage = async (stepId) => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        handleStepImageChange(stepId, result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
   };
 
   const handlePost = async () => {
@@ -126,7 +173,7 @@ export default function PublishRecipeScreen() {
         {/* Main Image Upload Area */}
         <TouchableOpacity
           style={styles.mainImageContainer}
-          onPress={handleImagePicker}
+          onPress={pickMainImage}
           activeOpacity={0.8}
         >
           {mainImageUri ? (
@@ -134,6 +181,7 @@ export default function PublishRecipeScreen() {
           ) : (
             <View style={styles.imagePlaceholder}>
               <ThemedText style={styles.placeholderIcon}>🏔️☀️</ThemedText>
+              <ThemedText style={styles.placeholderText}>Tap to add main image</ThemedText>
             </View>
           )}
         </TouchableOpacity>
@@ -196,7 +244,7 @@ export default function PublishRecipeScreen() {
               <ThemedText style={styles.stepLabel}>{index + 1}. step</ThemedText>
               <TouchableOpacity
                 style={styles.stepImageContainer}
-                onPress={() => handleImagePicker()}
+                onPress={() => pickStepImage(step.id)}
                 activeOpacity={0.8}
               >
                 {step.imageUri ? (
@@ -208,6 +256,7 @@ export default function PublishRecipeScreen() {
                 ) : (
                   <View style={styles.stepImagePlaceholder}>
                     <ThemedText style={styles.placeholderIcon}>🏔️☀️</ThemedText>
+                    <ThemedText style={styles.placeholderTextSmall}>Tap to add image</ThemedText>
                   </View>
                 )}
               </TouchableOpacity>
@@ -304,6 +353,16 @@ const styles = StyleSheet.create({
   placeholderIcon: {
     fontSize: 48,
     color: '#999',
+  },
+  placeholderText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
+  },
+  placeholderTextSmall: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
   },
   contentSection: {
     backgroundColor: '#2C2C2C',
