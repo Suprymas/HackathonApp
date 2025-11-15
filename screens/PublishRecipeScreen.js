@@ -58,7 +58,6 @@ export default function PublishRecipeScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission needed', 'Please allow access to your photos to upload images.');
-
       return false;
     }
     return true;
@@ -104,7 +103,7 @@ export default function PublishRecipeScreen() {
       console.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image');
     }
-
+  };
 
   const handlePost = async () => {
     // Validate required fields
