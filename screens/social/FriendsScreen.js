@@ -3,6 +3,7 @@ import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Text, TextInput 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/Supabase';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function FriendsScreen() {
   const navigation = useNavigation();
@@ -14,123 +15,51 @@ export default function FriendsScreen() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userAvatar, setUserAvatar] = useState('https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg'); // Default husky avatar
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+      return () => {
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [])
+  );
   const loadData = async () => {
-    try {
-      setLoading(true);
+    console.log("Hi")
+    setLoading(true);
 
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('No user logged in');
-        return;
-      }
-      setCurrentUserId(user.id);
-
-      // Get user profile for avatar
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', user.id)
-        .single();
-      
-      if (profile?.avatar_url) {
-        setUserAvatar(profile.avatar_url);
-      }
-
-      // Mock data for groups - replace with actual data fetching
-      const mockGroups = [
-        {
-          id: 1,
-          name: 'Room 3A',
-          icon: 'restaurant',
-          posts: [
-            { id: 1, title: 'Pizza', date: '14.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop' },
-            { id: 2, title: 'Toast', date: '13.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=200&h=200&fit=crop' },
-            { id: 3, title: 'Burger', date: '12.11', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop' },
-          ]
-        },
-        {
-          id: 2,
-          name: 'Foodly',
-          icon: 'restaurant-outline',
-          posts: [
-            { id: 4, title: 'Burger', date: '12.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop' },
-            { id: 5, title: 'Spieße', date: '11.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=200&h=200&fit=crop' },
-            { id: 6, title: 'Banana-Toast', date: '10.11.2025', author: 'Mengmeng', image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=200&h=200&fit=crop' },
-          ]
-        }
-      ];
-
-      // Mock data for friends/chats - replace with actual data fetching
-      const mockFriends = [
-        {
-          id: 1,
-          name: 'lukas',
-          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
-          lastMessage: 'You: Hello!',
-          unreadCount: 12,
-          timestamp: '2:30 PM'
-        },
-        {
-          id: 2,
-          name: 'Justas',
-          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
-          lastMessage: 'You: Hello!',
-          unreadCount: 0,
-          timestamp: '1:15 PM'
-        },
-        {
-          id: 3,
-          name: 'Siebe',
-          avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
-          lastMessage: 'You: Hello!',
-          unreadCount: 0,
-          timestamp: '12:00 PM'
-        }
-      ];
-
-      // Mock data for notifications - replace with actual data fetching
-      const mockNotifications = [
-        {
-          id: 1,
-          author: { name: 'Mengmeng', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
-          type: 'comment', // 'like' or 'comment'
-          targetType: 'recipe', // 'recipe' or 'story'
-          targetId: 'recipe-1', // ID of the recipe or story
-          message: 'add a comment to your recipe',
-          targetImage: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop',
-          timestamp: '2 hours ago'
-        },
-        {
-          id: 2,
-          author: { name: 'Mengmeng', avatar: 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg' },
-          type: 'like',
-          targetType: 'story',
-          targetId: 'story-1', // ID of the recipe or story
-          message: 'liked your story',
-          targetImage: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=200&h=200&fit=crop',
-          timestamp: '5 hours ago'
-        }
-      ];
-
-      setGroups(mockGroups);
-      setFriends(mockFriends);
-      setNotifications(mockNotifications);
-
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('No user logged in');
+      return;
     }
+    setCurrentUserId(user.id);
+
+    //get all groups_id for current user
+    const { data: groupIdData, error: groupError } = await supabase.from('group_members').select('group_id').eq('user_id', user.id)
+
+    console.log("groupsiddata", groupIdData)
+    console.log("groupsiddata", groupError)
+    const groupIds = groupIdData.map(item => item.group_id);
+    console.log("groupsid", groupIds)
+
+    const { data: groupData, error: groupdataError } = await supabase
+      .from('groups')
+      .select('*')
+      .in('id', groupIds);
+
+    console.log(groupData)
+
+    setGroups(groupData);
+    //setFriends(mockFriends);
+    //setNotifications(mockNotifications);
+
+    setLoading(false);
   };
 
   const renderGroupsTab = () => {
-    const filteredGroups = groups.filter(group => 
+    const filteredGroups = groups.filter(group =>
       group.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -141,20 +70,19 @@ export default function FriendsScreen() {
             key={group.id}
             style={styles.groupCard}
             onPress={() => navigation.navigate('GroupChat', {
-              groupId: group.id,
-              groupName: group.name,
-              groupIcon: group.icon,
+              roomId: group.id,
             })}
           >
             <View style={styles.groupHeader}>
-              <Ionicons 
-                name={group.icon} 
-                size={20} 
-                color="#333" 
+              <Ionicons
+                name={group.icon}
+                size={20}
+                color="#333"
                 style={styles.groupIcon}
               />
               <Text style={styles.groupName}>{group.name}</Text>
             </View>
+            {/*
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postsScroll}>
               {group.posts.map((post) => (
                 <View key={post.id} style={styles.postCard}>
@@ -169,7 +97,7 @@ export default function FriendsScreen() {
                   </View>
                 </View>
               ))}
-            </ScrollView>
+            </ScrollView>*/}
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -177,7 +105,7 @@ export default function FriendsScreen() {
   };
 
   const renderFriendsTab = () => {
-    const filteredFriends = friends.filter(friend => 
+    const filteredFriends = friends.filter(friend =>
       friend.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -211,7 +139,7 @@ export default function FriendsScreen() {
   };
 
   const renderFeedTab = () => {
-    const filteredNotifications = notifications.filter(notification => 
+    const filteredNotifications = notifications.filter(notification =>
       notification.author.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       notification.message.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -232,9 +160,9 @@ export default function FriendsScreen() {
               }
             }}
           >
-            <Image 
-              source={{ uri: notification.author.avatar }} 
-              style={styles.notificationAvatar} 
+            <Image
+              source={{ uri: notification.author.avatar }}
+              style={styles.notificationAvatar}
             />
             <View style={styles.notificationContent}>
               <Text style={styles.notificationText}>
@@ -243,9 +171,9 @@ export default function FriendsScreen() {
                 <Text style={styles.notificationMessage}>{notification.message}</Text>
               </Text>
             </View>
-            <Image 
-              source={{ uri: notification.targetImage }} 
-              style={styles.notificationThumbnail} 
+            <Image
+              source={{ uri: notification.targetImage }}
+              style={styles.notificationThumbnail}
             />
           </TouchableOpacity>
         ))}

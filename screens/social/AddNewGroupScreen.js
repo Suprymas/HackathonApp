@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ScrollView, 
-  StyleSheet, 
-  TouchableOpacity, 
-  View, 
-  TextInput, 
-  Alert, 
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  TextInput,
+  Alert,
   Image,
-  Text 
+  Text
 } from 'react-native';
 import { ThemedText } from '../../components/ThemedText';
 import { supabase, uploadImage } from '../../services/Supabase';
@@ -59,77 +59,53 @@ export default function AddNewGroupScreen({ navigation }) {
   };
 
   const loadFriends = async () => {
-    try {
-      setLoadingFriends(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoadingFriends(false);
-        return;
-      }
+    setLoadingFriends(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoadingFriends(false);
+      return;
+    }
 
-      // Get accepted friends
-      // First, get friends where user is the requester
-      const { data: friendsAsRequester, error: error1 } = await supabase
-        .from('friends')
-        .select('friend_id, status')
-        .eq('user_id', user.id)
-        .eq('status', 'accepted');
+    // Get accepted friends
+    // First, get friends where user is the requester
+    const { data: friends, error1 } = await supabase
+      .from('friendships')
+      .select('addressee_id,requester_id')
+      .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+      .eq('status', 'accepted');
 
-      // Then, get friends where user is the recipient
-      const { data: friendsAsRecipient, error: error2 } = await supabase
-        .from('friends')
-        .select('user_id, status')
-        .eq('friend_id', user.id)
-        .eq('status', 'accepted');
+    console.log("friends", friends)
 
-      if (error1 || error2) {
-        console.error('Error loading friends:', error1 || error2);
-        // Fallback to mock data if table doesn't exist yet
-        setFriends(getMockFriends());
-        setFilteredFriends(getMockFriends());
-        setLoadingFriends(false);
-        return;
-      }
+    // Combine friend IDs
+    const friendIds = new Set();
+    for (let { requester_id, addressee_id } of friends) {
+      console.log(requester_id)
+      friendIds.add(requester_id);
+      friendIds.add(addressee_id);
+      console.log(friendIds)
+    }
+    friendIds.delete(user.id)
 
-      // Combine friend IDs
-      const friendIds = new Set();
-      friendsAsRequester?.forEach(f => friendIds.add(f.friend_id));
-      friendsAsRecipient?.forEach(f => friendIds.add(f.user_id));
+    // Get friend profiles
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .in('id', Array.from(friendIds));
 
-      if (friendIds.size === 0) {
-        // Fallback to mock data if no friends
-        setFriends(getMockFriends());
-        setFilteredFriends(getMockFriends());
-        setLoadingFriends(false);
-        return;
-      }
-
-      // Get friend profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url')
-        .in('id', Array.from(friendIds));
-
-      if (profilesError) {
-        console.error('Error loading friend profiles:', profilesError);
-        setFriends(getMockFriends());
-        setFilteredFriends(getMockFriends());
-      } else {
-        const friendsList = (profiles || []).map(profile => ({
-          id: profile.id,
-          username: profile.username || 'Unknown',
-          avatar: profile.avatar_url || 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
-        }));
-        setFriends(friendsList);
-        setFilteredFriends(friendsList);
-      }
-    } catch (error) {
-      console.error('Error loading friends:', error);
+    if (profilesError) {
+      console.error('Error loading friend profiles:', profilesError);
       setFriends(getMockFriends());
       setFilteredFriends(getMockFriends());
-    } finally {
-      setLoadingFriends(false);
+    } else {
+      const friendsList = (profiles || []).map(profile => ({
+        id: profile.id,
+        username: profile.username || 'Unknown',
+        avatar: profile.avatar_url || 'https://i.pinimg.com/736x/c4/0c/67/c40c6735f15972c25e6d8ef722d6f1f2.jpg',
+      }));
+      setFriends(friendsList);
+      setFilteredFriends(friendsList);
     }
+    setLoadingFriends(false);
   };
 
   const getMockFriends = () => {
@@ -232,27 +208,6 @@ export default function AddNewGroupScreen({ navigation }) {
         .select()
         .single();
 
-      if (groupError) {
-        console.error('Error creating group:', groupError);
-        // If groups table doesn't exist, show success message anyway
-        if (groupError.code === '42P01') {
-          Alert.alert(
-            'Success',
-            `Group "${groupName}" created successfully! (Note: Please run groups-setup.sql to create the database tables)`,
-            [
-              {
-                text: 'OK',
-                onPress: () => {
-                  resetForm();
-                  navigation.goBack();
-                },
-              },
-            ]
-          );
-          return;
-        }
-        throw groupError;
-      }
 
       // Add creator as admin member
       if (group) {
@@ -315,8 +270,8 @@ export default function AddNewGroupScreen({ navigation }) {
           <ThemedText style={styles.headerTitle} lightColor="#fff" darkColor="#fff">
             Create Group
           </ThemedText>
-          <TouchableOpacity 
-            style={styles.closeButton} 
+          <TouchableOpacity
+            style={styles.closeButton}
             onPress={() => navigation.goBack()}
           >
             <Ionicons name="close" size={24} color="#fff" />
@@ -360,7 +315,7 @@ export default function AddNewGroupScreen({ navigation }) {
               {groupDescription.length}/{MAX_DESCRIPTION_LENGTH}
             </Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.imagePlaceholder}
             onPress={handleImagePicker}
           >
@@ -401,9 +356,9 @@ export default function AddNewGroupScreen({ navigation }) {
                 style={styles.friendItem}
                 onPress={() => toggleFriendSelection(friend.id)}
               >
-                <Image 
-                  source={{ uri: friend.avatar }} 
-                  style={styles.friendAvatar} 
+                <Image
+                  source={{ uri: friend.avatar }}
+                  style={styles.friendAvatar}
                 />
                 <Text style={styles.friendName}>
                   {friend.username}

@@ -28,18 +28,17 @@ export default function AddNewFriendScreen({ navigation }) {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      Alert.alert('Error', 'Please enter a username or email to search');
       return;
     }
 
     try {
       setLoading(true);
-      
+
       // Search for users by username or email
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, email, avatar_url')
-        .or(`username.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
+        .select('id, username, avatar_url')
+        .or(`username.ilike.%${searchQuery}%`)
         .limit(20);
 
       if (error) throw error;
@@ -56,17 +55,11 @@ export default function AddNewFriendScreen({ navigation }) {
     }
   };
 
-  const handleAddFriend = async (friendId, friendName) => {
-    try {
-      // In a real app, you would create a friend request or add to friends table
-      // For now, we'll just show a success message
-      Alert.alert('Success', `Friend request sent to ${friendName}!`);
-      setSearchQuery('');
-      setSearchResults([]);
-    } catch (error) {
-      console.error('Error adding friend:', error);
-      Alert.alert('Error', 'Failed to add friend');
-    }
+  const handleAddFriend = async (friendId) => {
+    //todo: catch eroor 
+    const { data, error } = await supabase.from('friendships').insert({ requester_id: currentUserId, addressee_id: friendId });
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
   return (
@@ -77,8 +70,8 @@ export default function AddNewFriendScreen({ navigation }) {
           <ThemedText style={styles.headerTitle} lightColor="#fff" darkColor="#fff">
             Add new friend
           </ThemedText>
-          <TouchableOpacity 
-            style={styles.closeButton} 
+          <TouchableOpacity
+            style={styles.closeButton}
             onPress={() => navigation.goBack()}
           >
             <Ionicons name="close" size={24} color="#fff" />
@@ -92,7 +85,7 @@ export default function AddNewFriendScreen({ navigation }) {
           <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by username or email"
+            placeholder="Search by username"
             placeholderTextColor="#999"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -123,7 +116,7 @@ export default function AddNewFriendScreen({ navigation }) {
         ) : searchResults.length === 0 ? (
           <View style={styles.emptyContainer}>
             <ThemedText style={styles.emptyText} lightColor="#999" darkColor="#999">
-              Enter a username or email to search for friends
+              Enter a username to search for friends
             </ThemedText>
           </View>
         ) : (
@@ -131,7 +124,7 @@ export default function AddNewFriendScreen({ navigation }) {
             <TouchableOpacity
               key={user.id}
               style={styles.userCard}
-              onPress={() => handleAddFriend(user.id, user.username)}
+              onPress={() => handleAddFriend(user.id)}
             >
               {user.avatar_url ? (
                 <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
@@ -144,11 +137,6 @@ export default function AddNewFriendScreen({ navigation }) {
                 <ThemedText style={styles.username} lightColor="#fff" darkColor="#fff">
                   {user.username}
                 </ThemedText>
-                {user.email && (
-                  <ThemedText style={styles.email} lightColor="#999" darkColor="#999">
-                    {user.email}
-                  </ThemedText>
-                )}
               </View>
               <TouchableOpacity
                 style={styles.addButton}
@@ -275,10 +263,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     marginBottom: 4,
-  },
-  email: {
-    fontSize: 14,
-    color: '#999',
   },
   addButton: {
     backgroundColor: '#CC684F',
