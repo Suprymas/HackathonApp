@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Image, Text, TextInput } from 'react-native';
+import { ThemedText } from '../../components/ThemedText';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/Supabase';
@@ -50,9 +51,34 @@ export default function FriendsScreen() {
       .in('id', groupIds);
 
     console.log(groupData)
-
+    // set groups
     setGroups(groupData);
-    //setFriends(mockFriends);
+
+    // set friends
+    const { data: friends, error1 } = await supabase
+      .from('friendships')
+      .select('addressee_id,requester_id')
+      .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+      .eq('status', 'accepted');
+
+    console.log("friends", friends)
+
+    // Combine friend IDs
+    const friendIds = new Set();
+    for (let { requester_id, addressee_id } of friends) {
+      console.log(requester_id)
+      friendIds.add(requester_id);
+      friendIds.add(addressee_id);
+      console.log(friendIds)
+    }
+    friendIds.delete(user.id)
+    // Get friend profiles
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .in('id', Array.from(friendIds));
+
+    setFriends(profiles);
     //setNotifications(mockNotifications);
 
     setLoading(false);
@@ -105,33 +131,33 @@ export default function FriendsScreen() {
   };
 
   const renderFriendsTab = () => {
-    const filteredFriends = friends.filter(friend =>
-      friend.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    console.log(friends)
 
     return (
       <ScrollView style={styles.contentScroll}>
-        {filteredFriends.map((friend) => (
+        {friends.map((friend) => (
           <TouchableOpacity
             key={friend.id}
             style={styles.friendCard}
-            onPress={() => navigation.navigate('GroupChat', {
-              friendId: friend.id,
-              friendName: friend.name,
-              friendAvatar: friend.avatar,
-              isDirectChat: true,
-            })}
           >
-            <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
-            <View style={styles.friendInfo}>
-              <Text style={styles.friendName}>{friend.name}</Text>
-              <Text style={styles.friendLastMessage}>{friend.lastMessage}</Text>
-            </View>
-            {friend.unreadCount > 0 && (
-              <View style={styles.unreadBadge}>
-                <Text style={styles.unreadBadgeText}>{friend.unreadCount}</Text>
+            {/* Avatar */}
+            {friend.avatar_url ? (
+              <Image
+                source={{ uri: friend.avatar_url }}
+                style={styles.friendAvatar}
+              />
+            ) : (
+              <View style={styles.friendAvatarPlaceholder}>
+                <ThemedText style={styles.friendAvatarInitial}>
+                  {friend.username?.charAt(0).toUpperCase() || "U"}
+                </ThemedText>
               </View>
             )}
+
+            {/* Username */}
+            <View style={styles.friendInfo}>
+              <Text style={styles.friendName}>{friend.username}</Text>
+            </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -471,4 +497,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2C2C2E',
   },
+  friendCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    marginVertical: 6,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    elevation: 3,
+  },
+
+  friendAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+
+  friendAvatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#E0E0E0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+
+  friendAvatarInitial: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#666",
+  },
+
+  friendInfo: {
+    flexDirection: "column",
+  },
+
+  friendName: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#000",
+  },
+
 });
