@@ -4,6 +4,7 @@ import { ThemedText } from '../../components/ThemedText';
 import { supabase } from '../../services/Supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2; // 2 columns with padding
@@ -25,10 +26,15 @@ export default function ProfileScreen() {
   const [listType, setListType] = useState(null); // 'friends' or 'groups'
   const navigation = useNavigation();
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUserData();
+      return () => {
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [])
+  );
   const loadUserData = async () => {
     try {
       setError(null);
@@ -69,10 +75,9 @@ export default function ProfileScreen() {
       const { data, error } = await supabase
         .from('recipes')
         .select(`
-          *,
-          author:author_id(id, username)
+          *
         `)
-        .eq('author_id', userId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -93,8 +98,7 @@ export default function ProfileScreen() {
       const { data, error } = await supabase
         .from('stories')
         .select(`
-          *,
-          author:user_id(id, username)
+          *
         `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
@@ -267,7 +271,7 @@ export default function ProfileScreen() {
                 </View>
                 {/* Friends and Groups Count */}
                 <View style={styles.friendsGroupsContainer}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.friendsGroupsItem}
                     onPress={() => handleShowList('friends')}
                   >
@@ -275,7 +279,7 @@ export default function ProfileScreen() {
                       Friends: {friendsCount}
                     </ThemedText>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.friendsGroupsItem}
                     onPress={() => handleShowList('groups')}
                   >
@@ -460,7 +464,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* List Content */}
-            <ScrollView 
+            <ScrollView
               style={styles.modalList}
               contentContainerStyle={styles.modalListContent}
             >
@@ -486,9 +490,9 @@ export default function ProfileScreen() {
                         });
                       }}
                     >
-                      <Image 
-                        source={{ uri: friend.avatar }} 
-                        style={styles.listItemAvatar} 
+                      <Image
+                        source={{ uri: friend.avatar }}
+                        style={styles.listItemAvatar}
                       />
                       <ThemedText style={styles.listItemName} lightColor="#fff" darkColor="#fff">
                         {friend.name}
@@ -518,10 +522,10 @@ export default function ProfileScreen() {
                       }}
                     >
                       <View style={styles.groupIconContainer}>
-                        <Ionicons 
-                          name={group.icon} 
-                          size={24} 
-                          color="#fff" 
+                        <Ionicons
+                          name={group.icon}
+                          size={24}
+                          color="#fff"
                         />
                       </View>
                       <ThemedText style={styles.listItemName} lightColor="#fff" darkColor="#fff">
