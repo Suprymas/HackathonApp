@@ -342,10 +342,14 @@ export default function ProfileScreen() {
                       key={recipe.id}
                       style={styles.recipeCard}
                       activeOpacity={0.7}
+                      onPress={() => {
+                        navigation.navigate('RecipeDetail', { id: recipe.id });
+                        console.log(recipe.id);
+                      }}
                     >
-                      {recipe.image_url ? (
+                      {recipe.main_image_url ? (
                         <Image
-                          source={{ uri: recipe.image_url }}
+                          source={{ uri: recipe.main_image_url }}
                           style={styles.recipeImage}
                           resizeMode="cover"
                         />
