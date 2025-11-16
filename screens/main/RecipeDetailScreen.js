@@ -175,7 +175,7 @@ export default function RecipeDetailScreen(props) {
                   <ThemedText style={styles.sectionLabel}>{index + 1}. step</ThemedText>
                   <View style={styles.stepImageContainer}>
                     <Image
-                      source={{ uri: stepImageUrl }}
+                      source={{ uri: step.image_url }}
                       style={styles.stepImage}
                       resizeMode="cover"
                     />
@@ -184,7 +184,7 @@ export default function RecipeDetailScreen(props) {
                     <View style={styles.cookDetailsSection}>
                       <View style={styles.textDisplay}>
                         <ThemedText style={styles.textDisplayContent}>
-                          {cookDetails}
+                          {step.description}
                         </ThemedText>
                       </View>
                     </View>
