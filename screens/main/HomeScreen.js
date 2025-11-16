@@ -96,12 +96,13 @@ const mockRecipes = [
   },
 ];
 
-export default function FeedScreen({navigation}) {
+export default function FeedScreen({ navigation }) {
   const [recipes, setRecipes] = useState(mockRecipes);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stories, setStories] = useState([]);
   const [storiesLoading, setStoriesLoading] = useState(false);
+  const [activeStory, setActiveStory] = useState(null);
 
   const navigator = useNavigation();
 
@@ -156,15 +157,10 @@ export default function FeedScreen({navigation}) {
     }
   };
 
-  useEffect(() => {
-    loadRecipes();
-  }, []);
-  console.log('stories:', stories);
-  console.log(typeof recipes);
-  console.log('recipes', recipes);
   useFocusEffect(
     React.useCallback(() => {
       loadStories();
+      loadRecipes();
     }, [])
   );
 
@@ -185,6 +181,12 @@ export default function FeedScreen({navigation}) {
         `)
         .order('created_at', { ascending: false })
         .limit(10);
+      for (let story of data) {
+        const { data: userdata, error: error } = await supabase.from('profiles').select('*').eq('id', story.user_id).single();
+        console.log(userdata);
+        story.user = userdata
+        console.log(story)
+      }
 
       if (error) throw error;
 
@@ -197,9 +199,8 @@ export default function FeedScreen({navigation}) {
     }
   };
 
-  // Use mock stories for now, will connect to backend later
-
   return (
+
     <View style={styles.outerContainer}>
       <ScrollView
         style={styles.container}
@@ -225,11 +226,11 @@ export default function FeedScreen({navigation}) {
               <ThemedText style={styles.addStoryIcon}>+</ThemedText>
             </TouchableOpacity>
             {stories.map((story, index) => (
-              <TouchableOpacity 
-                key={story.id} 
+              <TouchableOpacity
+                key={story.id}
                 style={styles.storyCircle}
                 activeOpacity={0.7}
-                onPress={() => index === 0 ? navigator.navigate('CreateStory') : null}
+                onPress={() => { setActiveStory(story) }}
               >
                 {story.image ? (
                   <Image
@@ -296,12 +297,12 @@ export default function FeedScreen({navigation}) {
                       <ThemedText style={styles.recipeDate} lightColor="#666" darkColor="#666">
                         {recipe.created_at
                           ? new Date(recipe.created_at)
-                              .toLocaleDateString('en-GB', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                              })
-                              .replace(/\./g, '/')
+                            .toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                            })
+                            .replace(/\./g, '/')
                           : ''}
                       </ThemedText>
                     </View>
@@ -323,6 +324,50 @@ export default function FeedScreen({navigation}) {
           )}
         </View>
       </ScrollView>
+      {activeStory && (
+        <TouchableOpacity
+          style={styles.storyOverlay}
+          activeOpacity={1}
+          onPress={() => setActiveStory(null)}
+        >
+          {/* Fullscreen Story Image */}
+          <Image
+            source={{ uri: activeStory.image }}
+            style={styles.storyOverlayImage}
+            resizeMode="cover"
+          />
+
+          {/* Info Box */}
+          <View style={styles.storyOverlayInfo}>
+
+            {/* Avatar */}
+            {activeStory.user?.avatar_url ? (
+              <Image
+                source={{ uri: activeStory.user.avatar_url }}
+                style={styles.storyAvatar}
+              />
+            ) : (
+              <View style={styles.storyAvatarPlaceholder}>
+                <ThemedText style={styles.storyAvatarInitial}>
+                  {activeStory.user?.username?.charAt(0).toUpperCase() || "U"}
+                </ThemedText>
+              </View>
+            )}
+
+            {/* Username */}
+            <ThemedText style={styles.storyOverlayAuthor}>
+              {activeStory.user?.username || "Unknown"}
+            </ThemedText>
+
+            {/* Title */}
+            <ThemedText style={styles.storyOverlayTitle}>
+              {activeStory.title}
+            </ThemedText>
+
+          </View>
+        </TouchableOpacity>
+      )}
+
     </View>
   );
 }
@@ -519,4 +564,126 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
   },
-});
+  storyOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,         // ensures it sits above EVERYTHING
+  },
+
+  storyOverlayImage: {
+    width: '90%',
+    height: '90%',
+    borderRadius: 12,
+  },
+  storyOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    padding: 20,
+  },
+
+  storyOverlayImage: {
+    width: '100%',
+    height: '80%',
+    borderRadius: 12,
+  },
+
+  storyOverlayInfo: {
+    position: 'absolute',
+    bottom: 60,
+    width: '100%',
+    alignItems: 'center',
+  },
+
+  storyOverlayTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+
+  storyOverlayAuthor: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#ccc',
+    textAlign: 'center',
+  },
+  storyOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+
+  storyOverlayImage: {
+    width: '100%',
+    height: '80%',
+  },
+
+  storyOverlayInfo: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  storyAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+
+  storyAvatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+
+  storyAvatarInitial: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#666',
+  },
+
+  storyOverlayAuthor: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 10,
+  },
+
+  storyOverlayTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+
+}
+)
+
+  ;
